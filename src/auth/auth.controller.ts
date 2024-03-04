@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -35,5 +35,10 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res) {
     return await this.authService.login(res, dto.id, dto.password);
+  }
+
+  @Get('refresh')
+  async refresh(@Req() req, @Res({ passthrough: true }) res) {
+    return await this.authService.reissueToken(req, res);
   }
 }

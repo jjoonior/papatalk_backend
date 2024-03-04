@@ -88,26 +88,35 @@ export class AuthService {
   }
 
   async signToken(res, user) {
-    const payload = {
-      id: user.id,
-      nickname: user.nickname,
-    };
-
-    const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: Number(process.env.JWT_ACCESS_EXPIRE),
-    });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRE),
-    });
+    const accessToken = this.jwtService.sign(
+      {
+        id: user.id,
+        nickname: user.nickname,
+        type: 'access',
+      },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: Number(process.env.JWT_ACCESS_EXPIRE),
+      },
+    );
+    const refreshToken = this.jwtService.sign(
+      {
+        id: user.id,
+        nickname: user.nickname,
+        type: 'refresh',
+      },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: Number(process.env.JWT_REFRESH_EXPIRE),
+      },
+    );
 
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
     await this.storeToken(user.id, refreshToken);
 
-    return { accessToken, refreshToken, payload };
+    return { accessToken, refreshToken };
   }
 
   async storeToken(id: string, refreshToken: string) {
@@ -119,5 +128,47 @@ export class AuthService {
       // ttl 옵션 적용이 안됨 -> cacheModule.register 시 ttl 설정
       // Number(process.env.JWT_REFRESH_EXPIRE),
     );
+  }
+
+  async getToken(id: string) {
+    const key = `token:${id}`;
+    const token = await this.cacheManager.get(key);
+    if (token) {
+      return {
+        refreshToken: token['refreshToken'],
+      };
+    } else {
+      return null;
+    }
+  }
+
+  verifyToken(token: string) {
+    try {
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch (e) {
+      throw new BadRequestException('유효하지 않은 토큰입니다.');
+    }
+  }
+
+  async reissueToken(req, res) {
+    const refreshToken = req.cookies['refreshToken'];
+    if (!refreshToken) {
+      throw new BadRequestException('유효하지 않은 토큰입니다.');
+    }
+
+    const payload = this.verifyToken(refreshToken);
+    if (payload.type != 'refresh') {
+      throw new BadRequestException('유효하지 않은 토큰입니다.');
+    }
+
+    const storedToken = await this.getToken(payload.id);
+    if (storedToken.refreshToken !== refreshToken) {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+
+    const token = await this.signToken(res, payload);
+    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
   }
 }
