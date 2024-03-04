@@ -1,0 +1,93 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from '../entity/user.entity';
+import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
+const cookieOptions = {
+  httpOnly: true,
+  // secure: true,
+};
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userEntityRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async duplicationCheckId(id: string) {
+    if (!!(await this.userEntityRepository.findOneBy({ loginId: id }))) {
+      throw new ConflictException('이미 존재하는 아이디입니다.');
+    }
+  }
+
+  async duplicationCheckNickname(nickname: string) {
+    if (!!(await this.userEntityRepository.findOneBy({ nickname }))) {
+      throw new ConflictException('이미 존재하는 닉네임입니다.');
+    }
+  }
+
+  async signup(
+    res,
+    id: string,
+    nickname: string,
+    password: string,
+    termsAgreed: boolean,
+    privacyPolicyAgreed: boolean,
+  ) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await this.duplicationCheckId(id);
+    await this.duplicationCheckNickname(nickname);
+
+    if (!termsAgreed || !privacyPolicyAgreed) {
+      throw new BadRequestException(
+        '회원가입을 완료하려면 이용약관과 개인정보취급방침에 모두 동의해야 합니다.',
+      );
+    }
+
+    const newUserObject = await this.userEntityRepository.create({
+      loginId: id,
+      nickname,
+      password: hashedPassword,
+      termsAgreed,
+      privacyPolicyAgreed,
+    });
+    const newUser = await this.userEntityRepository.save(newUserObject);
+
+    const token = await this.signToken(res, newUser);
+    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+  }
+
+  async signToken(res, user) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      language: user.language,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: Number(process.env.JWT_ACCESS_EXPIRE),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: Number(process.env.JWT_REFRESH_EXPIRE),
+    });
+
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
+    // await this.storeToken(user.id, accessToken, refreshToken);
+
+    return { accessToken, refreshToken, payload };
+  }
+}
