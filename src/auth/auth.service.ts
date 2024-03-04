@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +9,8 @@ import { UserEntity } from '../entity/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 const cookieOptions = {
   httpOnly: true,
@@ -20,6 +23,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userEntityRepository: Repository<UserEntity>,
     private readonly jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async duplicationCheckId(id: string) {
@@ -70,8 +74,7 @@ export class AuthService {
   async signToken(res, user) {
     const payload = {
       id: user.id,
-      email: user.email,
-      language: user.language,
+      nickname: user.nickname,
     };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -86,8 +89,19 @@ export class AuthService {
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
-    // await this.storeToken(user.id, accessToken, refreshToken);
+    await this.storeToken(user.id, refreshToken);
 
     return { accessToken, refreshToken, payload };
+  }
+
+  async storeToken(id: string, refreshToken: string) {
+    const token = { refreshToken };
+    const key = `token:${id}`;
+    await this.cacheManager.set(
+      key,
+      token,
+      // ttl 옵션 적용이 안됨 -> cacheModule.register 시 ttl 설정
+      // Number(process.env.JWT_REFRESH_EXPIRE),
+    );
   }
 }

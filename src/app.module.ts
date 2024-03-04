@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-ioredis';
 
 @Module({
   imports: [
@@ -21,6 +23,13 @@ import { AuthModule } from './auth/auth.module';
       entities: [__dirname + '/**/*.entity.{js,ts}'],
       // 개발환경은 true
       synchronize: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      ttl: Number(process.env.JWT_REFRESH_EXPIRE),
     }),
     AuthModule,
   ],
