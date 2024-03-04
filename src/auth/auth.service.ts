@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
@@ -71,27 +72,51 @@ export class AuthService {
     return { accessToken: token.accessToken, refreshToken: token.refreshToken };
   }
 
-  async signToken(res, user) {
-    const payload = {
-      id: user.id,
-      nickname: user.nickname,
-    };
+  async login(res, id: string, password: string) {
+    const user = await this.userEntityRepository.findOneBy({ loginId: id });
+    if (!user) {
+      throw new UnauthorizedException('로그인에 실패했습니다.');
+    }
 
-    const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: Number(process.env.JWT_ACCESS_EXPIRE),
-    });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRE),
-    });
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      throw new UnauthorizedException('로그인에 실패했습니다.');
+    }
+
+    const token = await this.signToken(res, user);
+    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+  }
+
+  async signToken(res, user) {
+    const accessToken = this.jwtService.sign(
+      {
+        id: user.id,
+        nickname: user.nickname,
+        type: 'access',
+      },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: Number(process.env.JWT_ACCESS_EXPIRE),
+      },
+    );
+    const refreshToken = this.jwtService.sign(
+      {
+        id: user.id,
+        nickname: user.nickname,
+        type: 'refresh',
+      },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: Number(process.env.JWT_REFRESH_EXPIRE),
+      },
+    );
 
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
     await this.storeToken(user.id, refreshToken);
 
-    return { accessToken, refreshToken, payload };
+    return { accessToken, refreshToken };
   }
 
   async storeToken(id: string, refreshToken: string) {
@@ -103,5 +128,51 @@ export class AuthService {
       // ttl 옵션 적용이 안됨 -> cacheModule.register 시 ttl 설정
       // Number(process.env.JWT_REFRESH_EXPIRE),
     );
+  }
+
+  async getToken(id: string) {
+    const key = `token:${id}`;
+    const token = await this.cacheManager.get(key);
+    if (token) {
+      return {
+        refreshToken: token['refreshToken'],
+      };
+    } else {
+      return null;
+    }
+  }
+
+  verifyToken(token: string) {
+    try {
+      return this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch (e) {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+  }
+
+  async reissueToken(req, res) {
+    const refreshToken = req.cookies['refreshToken'];
+    if (!refreshToken) {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+
+    const payload = this.verifyToken(refreshToken);
+    if (payload.type != 'refresh') {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+
+    const storedToken = await this.getToken(payload.id);
+    if (storedToken.refreshToken !== refreshToken) {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+
+    const token = await this.signToken(res, payload);
+    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+  }
+
+  async getUserByPayload(payload): Promise<UserEntity> {
+    return await this.userEntityRepository.findOneBy({ id: payload.id });
   }
 }
