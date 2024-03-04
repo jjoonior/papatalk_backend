@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
@@ -68,6 +69,21 @@ export class AuthService {
     const newUser = await this.userEntityRepository.save(newUserObject);
 
     const token = await this.signToken(res, newUser);
+    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+  }
+
+  async login(res, id: string, password: string) {
+    const user = await this.userEntityRepository.findOneBy({ loginId: id });
+    if (!user) {
+      throw new UnauthorizedException('로그인에 실패했습니다.');
+    }
+
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      throw new UnauthorizedException('로그인에 실패했습니다.');
+    }
+
+    const token = await this.signToken(res, user);
     return { accessToken: token.accessToken, refreshToken: token.refreshToken };
   }
 
