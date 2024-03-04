@@ -148,19 +148,19 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
       });
     } catch (e) {
-      throw new BadRequestException('유효하지 않은 토큰입니다.');
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
   }
 
   async reissueToken(req, res) {
     const refreshToken = req.cookies['refreshToken'];
     if (!refreshToken) {
-      throw new BadRequestException('유효하지 않은 토큰입니다.');
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
 
     const payload = this.verifyToken(refreshToken);
     if (payload.type != 'refresh') {
-      throw new BadRequestException('유효하지 않은 토큰입니다.');
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
 
     const storedToken = await this.getToken(payload.id);
@@ -170,5 +170,9 @@ export class AuthService {
 
     const token = await this.signToken(res, payload);
     return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+  }
+
+  async getUserByPayload(payload): Promise<UserEntity> {
+    return await this.userEntityRepository.findOneBy({ id: payload.id });
   }
 }
