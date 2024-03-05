@@ -27,8 +27,8 @@ export class AuthService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async duplicationCheckId(id: string) {
-    if (!!(await this.userEntityRepository.findOneBy({ loginId: id }))) {
+  async duplicationCheckEmail(email: string) {
+    if (!!(await this.userEntityRepository.findOneBy({ email }))) {
       throw new ConflictException('이미 존재하는 아이디입니다.');
     }
   }
@@ -41,7 +41,7 @@ export class AuthService {
 
   async signup(
     res,
-    id: string,
+    email: string,
     nickname: string,
     password: string,
     termsAgreed: boolean,
@@ -50,7 +50,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    await this.duplicationCheckId(id);
+    await this.duplicationCheckEmail(email);
     await this.duplicationCheckNickname(nickname);
 
     if (!termsAgreed || !privacyPolicyAgreed) {
@@ -60,7 +60,7 @@ export class AuthService {
     }
 
     const newUserObject = await this.userEntityRepository.create({
-      loginId: id,
+      email,
       nickname,
       password: hashedPassword,
       termsAgreed,
@@ -72,8 +72,8 @@ export class AuthService {
     return { accessToken: token.accessToken, refreshToken: token.refreshToken };
   }
 
-  async login(res, id: string, password: string) {
-    const user = await this.userEntityRepository.findOneBy({ loginId: id });
+  async login(res, email: string, password: string) {
+    const user = await this.userEntityRepository.findOneBy({ email });
     if (!user) {
       throw new UnauthorizedException('로그인에 실패했습니다.');
     }

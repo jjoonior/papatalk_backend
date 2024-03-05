@@ -9,11 +9,11 @@ export class AuthController {
 
   @Get('duplication-check')
   async duplicationCheck(
-    @Query('id') id: string,
+    @Query('email') email: string,
     @Query('nickname') nickname: string,
   ) {
-    if (!!id) {
-      await this.authService.duplicationCheckId(id);
+    if (!!email) {
+      await this.authService.duplicationCheckEmail(email);
     }
     if (!!nickname) {
       await this.authService.duplicationCheckNickname(nickname);
@@ -24,7 +24,7 @@ export class AuthController {
   async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) res) {
     return await this.authService.signup(
       res,
-      dto.id,
+      dto.email,
       dto.nickname,
       dto.password,
       dto.termsAgreed,
@@ -34,7 +34,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res) {
-    return await this.authService.login(res, dto.id, dto.password);
+    return await this.authService.login(res, dto.email, dto.password);
   }
 
   @Get('refresh')

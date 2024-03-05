@@ -12,12 +12,11 @@ export class UserEntity {
   id: number;
 
   @Column({
-    name: 'login_id',
     type: 'varchar',
     length: 255,
     unique: true,
   })
-  loginId: string;
+  email: string;
 
   @Column({
     type: 'varchar',
