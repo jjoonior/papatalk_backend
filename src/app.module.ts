@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { CommunityModule } from './community/community.module';
 import * as redisStore from 'cache-manager-ioredis';
 
 @Module({
@@ -32,6 +33,7 @@ import * as redisStore from 'cache-manager-ioredis';
       ttl: Number(process.env.JWT_REFRESH_EXPIRE),
     }),
     AuthModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
