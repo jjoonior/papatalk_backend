@@ -1,13 +1,18 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { CommunityEntity } from './community.entity';
+import { CommentEntity } from './comment.entity';
+import { LikeEntity } from './like.entity';
 
 @Entity('user')
-export class UserEntity {
+export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -42,6 +47,15 @@ export class UserEntity {
     name: 'privacy_policy_agreed',
   })
   privacyPolicyAgreed: boolean;
+
+  @OneToMany(() => CommunityEntity, (community) => community.user)
+  communities: CommunityEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  comments: CommentEntity[];
+
+  @OneToMany(() => LikeEntity, (like) => like.user)
+  likes: LikeEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
