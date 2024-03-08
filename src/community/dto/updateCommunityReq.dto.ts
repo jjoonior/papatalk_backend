@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateCommunityReqDto {
+export class UpdateCommunityReqDto {
   @ApiProperty({
     description: '제목',
     type: String,
