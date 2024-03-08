@@ -17,12 +17,59 @@ import { AuthGuard } from '../auth/guard/auth.guard';
 import { GetCommunityDetailResDto } from './dto/getCommunityDetailRes.dto';
 import { ValidateUserGuard } from '../auth/guard/validateUser.guard';
 import { GetCommunityListResDto } from './dto/getCommunityListRes.dto';
+import {
+  ApiBadRequestResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { UpdateCommunityReqDto } from './dto/updateCommunityReq.dto';
 
 @Controller('community')
+@ApiTags('Community')
+@ApiInternalServerErrorResponse({
+  schema: {
+    example: {
+      statusCode: 500,
+      message: 'Internal server error',
+    },
+  },
+})
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
   @Get()
+  @ApiOperation({
+    summary: '커뮤니티 게시글 목록 조회',
+    description: '커뮤니티 게시글 목록 조회',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '페이지',
+    example: 1,
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'sort',
+    description: '정렬 (최신순/추천순)',
+    example: 'createdAt',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'search',
+    description: '검색어',
+    example: '예시_검색어',
+    required: false,
+    type: String,
+  })
+  @ApiOkResponse({ type: GetCommunityListResDto })
   async getCommunityList(
     @Query('page') page = 1,
     @Query('sort') sort = 'createdAt',
@@ -49,6 +96,26 @@ export class CommunityController {
 
   @Get(':id')
   @UseGuards(ValidateUserGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 상세 조회',
+    description: '커뮤니티 게시글 상세 조회',
+  })
+  @ApiParam({
+    name: 'id',
+    description: '커뮤니티 게시글 id',
+    example: 1,
+  })
+  @ApiOkResponse({ type: GetCommunityDetailResDto })
+  @ApiNotFoundResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 글입니다.',
+        error: 'NotFound',
+        statusCode: 404,
+      },
+    },
+  })
   async getCommunityDetail(
     @Param('id') id: number,
     @Req() req,
@@ -76,6 +143,20 @@ export class CommunityController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 생성',
+    description: '커뮤니티 게시글 생성',
+  })
+  @ApiBadRequestResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 카테고리입니다.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
   async createCommunity(
     @Body() dto: CreateCommunityReqDto,
     @Req() req,
@@ -93,9 +174,48 @@ export class CommunityController {
 
   @Put(':id')
   @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 수정',
+    description: '커뮤니티 게시글 수정',
+  })
+  @ApiParam({
+    name: 'id',
+    description: '커뮤니티 게시글 id',
+    example: 1,
+  })
+  @ApiBadRequestResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 카테고리입니다.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '권한이 없습니다.',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 글입니다.',
+        error: 'NotFound',
+        statusCode: 404,
+      },
+    },
+  })
   async updateCommunity(
     @Param('id') id: number,
-    @Body() dto,
+    @Body() dto: UpdateCommunityReqDto,
     @Req() req,
     // @Res({ passthrough: true }) res,
   ) {
@@ -108,6 +228,35 @@ export class CommunityController {
 
   @Delete(':id')
   @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 삭제',
+    description: '커뮤니티 게시글 삭제',
+  })
+  @ApiParam({
+    name: 'id',
+    description: '커뮤니티 게시글 id',
+    example: 1,
+  })
+  @ApiUnauthorizedResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '권한이 없습니다.',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 글입니다.',
+        error: 'NotFound',
+        statusCode: 404,
+      },
+    },
+  })
   async deleteCommunity(
     @Param('id') id: number,
     @Req() req,
