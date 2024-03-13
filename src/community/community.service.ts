@@ -11,6 +11,7 @@ import { CommunityEntity } from '../entity/community.entity';
 import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
+import { ContentsTypeEnum } from '../entity/contentsType.enum';
 
 @Injectable()
 export class CommunityService {
@@ -76,7 +77,7 @@ export class CommunityService {
   async isLiked(user: UserEntity, id: number) {
     const liked = await this.likeRepository.findOne({
       where: {
-        contentsType: 'community',
+        contentsType: ContentsTypeEnum.COMMUNITY,
         contentsId: id,
         user: { id: user.id },
       },
