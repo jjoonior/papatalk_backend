@@ -6,8 +6,8 @@ import { CommunityEntity } from '../entity/community.entity';
 import { UserEntity } from '../entity/user.entity';
 import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
-import { LikeEntity } from '../entity/like.entity';
 import { AuthModule } from '../auth/auth.module';
+import { CommentLikeEntity } from '../entity/commentLike.entity';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { AuthModule } from '../auth/auth.module';
       UserEntity,
       CommentEntity,
       CategoryEntity,
-      LikeEntity,
+      CommentLikeEntity,
     ]),
     AuthModule,
   ],

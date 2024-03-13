@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CommunityEntity } from '../entity/community.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
 import { CommentEntity } from '../entity/comment.entity';
-import { LikeEntity } from '../entity/like.entity';
 import { ContentsTypeEnum } from '../entity/contentsType.enum';
+import { CommentLikeEntity } from '../entity/commentLike.entity';
 
 @Injectable()
 export class CommentService {
@@ -14,30 +14,48 @@ export class CommentService {
     private readonly communityRepository: Repository<CommunityEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentRepository: Repository<CommentEntity>,
-    @InjectRepository(LikeEntity)
-    private readonly likeRepository: Repository<LikeEntity>,
+    @InjectRepository(CommentLikeEntity)
+    private readonly CommentLikeRepository: Repository<CommentLikeEntity>,
   ) {}
 
-  async getCommentList(contentsId: number, page, sort, take) {
+  async getCommentList(
+    contentsId: number,
+    page: number,
+    sort: string,
+    take: number,
+  ) {
     const skip = (page - 1) * take;
 
-    return await this.commentRepository.findAndCount({
+    // todo sort 적용
+    return await this.commentRepository
+      .createQueryBuilder('c')
+      .leftJoinAndSelect('c.user', 'u')
+      .loadRelationCountAndMap('c.likes', 'c.commentLikes')
+      .where('c.contentsType = :contentsType', {
+        contentsType: ContentsTypeEnum.COMMUNITY,
+      })
+      .andWhere('c.contentsId = :contentsId', {
+        contentsId,
+      })
+      .orderBy('c.createdAt', 'DESC')
+      .offset(skip)
+      .limit(take)
+      .getManyAndCount();
+  }
+
+  async isLiked(user: UserEntity, commentIdList) {
+    const likedCommentList = await this.CommentLikeRepository.find({
       select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        user: {
-          id: true,
-          nickname: true,
-        },
+        comment: { id: true },
       },
-      skip,
-      take,
-      where: { contentsType: ContentsTypeEnum.COMMUNITY, contentsId },
-      order: { createdAt: 'desc' },
-      relations: { user: true },
+      where: {
+        user: { id: user.id },
+        comment: { id: In(commentIdList) },
+      },
+      relations: { comment: true },
     });
+
+    return likedCommentList.map((c) => c.comment.id);
   }
 
   async createComment(contentsId: number, content: string, user: UserEntity) {

@@ -29,6 +29,7 @@ export class CommentController {
     @Query('page') page = 1,
     @Query('sort') sort = 'createdAt',
     @Query('take') take = 10,
+    @Req() req,
   ) {
     const [commentList, totalCount] = await this.commentService.getCommentList(
       contentsId,
@@ -36,13 +37,33 @@ export class CommentController {
       sort,
       take,
     );
+
+    const commentIdList = commentList.map((c) => c.id);
+
+    let likedCommentIdList;
+    if (req.user) {
+      likedCommentIdList = await this.commentService.isLiked(
+        req.user,
+        commentIdList,
+      );
+    }
+
     const totalPage = Math.ceil(totalCount / take);
 
     return {
       commentList: commentList.map((c: any) => {
+        c.liked = false;
         c.authorId = c.user.id;
         c.authorNickname = c.user.nickname;
         delete c.user;
+        delete c.contentsType;
+        delete c.contentsId;
+
+        if (req.user) {
+          if (likedCommentIdList.includes(c.id)) {
+            c.liked = true;
+          }
+        }
 
         return c;
       }),
