@@ -101,4 +101,20 @@ export class CommentController {
   ) {
     await this.commentService.deleteComment(contentsId, commentId);
   }
+
+  @Post(':commentId/like')
+  @UseGuards(AuthGuard)
+  async toggleCommentLike(
+    @Param('communityId') contentsId: number,
+    @Param('commentId') commentId: number,
+    @Req() req,
+  ) {
+    const liked = await this.commentService.toggleCommentLike(
+      req.user,
+      contentsId,
+      commentId,
+    );
+
+    return { liked };
+  }
 }

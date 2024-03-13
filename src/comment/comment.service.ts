@@ -15,7 +15,7 @@ export class CommentService {
     @InjectRepository(CommentEntity)
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(CommentLikeEntity)
-    private readonly CommentLikeRepository: Repository<CommentLikeEntity>,
+    private readonly commentLikeRepository: Repository<CommentLikeEntity>,
   ) {}
 
   async getCommentList(
@@ -44,7 +44,7 @@ export class CommentService {
   }
 
   async isLiked(user: UserEntity, commentIdList) {
-    const likedCommentList = await this.CommentLikeRepository.find({
+    const likedCommentList = await this.commentLikeRepository.find({
       select: {
         comment: { id: true },
       },
@@ -89,5 +89,25 @@ export class CommentService {
       contentsId,
       id,
     });
+  }
+
+  async toggleCommentLike(user: UserEntity, contentsId: number, id: number) {
+    const liked = await this.commentLikeRepository.findOneBy({
+      user: { id: user.id },
+      comment: { id },
+    });
+
+    if (liked) {
+      await this.commentLikeRepository.remove(liked);
+      return false;
+    } else {
+      await this.commentLikeRepository
+        .create({
+          user,
+          comment: { id },
+        })
+        .save();
+      return true;
+    }
   }
 }
