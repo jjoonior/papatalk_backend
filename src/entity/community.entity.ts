@@ -5,12 +5,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
-import { CommentEntity } from './comment.entity';
 import { CategoryEntity } from './category.entity';
 
 @Entity('community')
@@ -44,9 +42,6 @@ export class CommunityEntity extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.communities)
   @JoinColumn()
   user: UserEntity;
-
-  @OneToMany(() => CommentEntity, (comment) => comment.community)
-  comments: CommentEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
