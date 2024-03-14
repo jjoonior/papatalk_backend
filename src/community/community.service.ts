@@ -172,4 +172,26 @@ export class CommunityService {
   async deleteCommunity(community: CommunityEntity) {
     await this.communityRepository.remove(community);
   }
+
+  async toggleCommunityLike(user: UserEntity, community: CommunityEntity) {
+    const liked = await this.likeRepository.findOneBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+      user: { id: user.id },
+    });
+
+    if (liked) {
+      await this.likeRepository.remove(liked);
+      return false;
+    } else {
+      await this.likeRepository
+        .create({
+          contentsType: ContentsTypeEnum.COMMUNITY,
+          contentsId: community.id,
+          user,
+        })
+        .save();
+      return true;
+    }
+  }
 }

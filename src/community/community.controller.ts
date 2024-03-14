@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -24,6 +25,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -280,5 +282,53 @@ export class CommunityController {
     await this.communityService.deleteCommunity(community);
 
     // return res.status(302).redirect('/community');
+  }
+
+  @Post(':id/like')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 추천 토글',
+    description: '커뮤니티 게시글 추천 토글',
+  })
+  @ApiParam({
+    name: 'id',
+    description: '커뮤니티 게시글 id',
+    example: 1,
+    type: Number,
+  })
+  @ApiCreatedResponse({ description: '추천 true' })
+  @ApiNoContentResponse({ description: '추천 false' })
+  @ApiUnauthorizedResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '권한이 없습니다.',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 글입니다.',
+        error: 'NotFound',
+        statusCode: 404,
+      },
+    },
+  })
+  async toggleCommentLike(@Param('id') id: number, @Req() req, @Res() res) {
+    const community = await this.communityService.getCommunity(id);
+    const liked = await this.communityService.toggleCommunityLike(
+      req.user,
+      community,
+    );
+
+    if (liked) {
+      return res.status(HttpStatus.CREATED).send();
+    } else {
+      return res.status(HttpStatus.NO_CONTENT).send();
+    }
   }
 }
