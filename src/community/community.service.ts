@@ -12,6 +12,8 @@ import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
 import { ContentsTypeEnum } from '../entity/contentsType.enum';
+import { ContentsImageEntity } from '../entity/contentsImage.entity';
+import { AwsS3Service } from '../utils/awsS3.service';
 
 @Injectable()
 export class CommunityService {
@@ -26,6 +28,9 @@ export class CommunityService {
     private readonly categoryRepository: Repository<CategoryEntity>,
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
+    @InjectRepository(ContentsImageEntity)
+    private readonly contentsImageRepository: Repository<ContentsImageEntity>,
+    private readonly awsS3Service: AwsS3Service,
   ) {}
 
   async getCommunityList(
@@ -107,6 +112,27 @@ export class CommunityService {
         category: categoryEntity,
       })
       .save();
+  }
+
+  async saveCommunityImages(community: CommunityEntity, images) {
+    const contentsImageList: ContentsImageEntity[] = [];
+
+    //todo 확장자 체크
+    const s3ResultList = await Promise.all(
+      images.map((image) => this.awsS3Service.uploadFile(image)),
+    );
+
+    s3ResultList.forEach((r) => {
+      const contentsImage = new ContentsImageEntity();
+      contentsImage.key = r.key;
+      contentsImage.url = r.url;
+      contentsImage.contentsType = ContentsTypeEnum.COMMUNITY;
+      contentsImage.contentsId = community.id;
+
+      contentsImageList.push(contentsImage);
+    });
+
+    return await this.contentsImageRepository.insert(contentsImageList);
   }
 
   async getCommunity(id: number) {

@@ -9,7 +9,9 @@ import {
   Query,
   Req,
   Res,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { CreateCommunityReqDto } from './dto/createCommunityReq.dto';
@@ -19,6 +21,7 @@ import { ValidateUserGuard } from '../auth/guard/validateUser.guard';
 import { GetCommunityListResDto } from './dto/getCommunityListRes.dto';
 import {
   ApiBadRequestResponse,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -30,6 +33,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UpdateCommunityReqDto } from './dto/updateCommunityReq.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('community')
 @ApiTags('Community')
@@ -143,11 +147,13 @@ export class CommunityController {
   }
 
   @Post()
+  @UseInterceptors(FilesInterceptor('images'))
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: '커뮤니티 게시글 생성',
     description: '커뮤니티 게시글 생성',
   })
+  @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse()
   @ApiBadRequestResponse({
     description: '',
@@ -160,6 +166,7 @@ export class CommunityController {
     },
   })
   async createCommunity(
+    @UploadedFiles() images,
     @Body() dto: CreateCommunityReqDto,
     @Req() req,
     // @Res({ passthrough: true }) res,
@@ -170,6 +177,8 @@ export class CommunityController {
       dto.content,
       dto.category,
     );
+
+    await this.communityService.saveCommunityImages(newCommunity, images);
 
     // return res.status(302).redirect(`community/${newCommunity.id}`);
   }
