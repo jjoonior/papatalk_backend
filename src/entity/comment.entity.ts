@@ -5,11 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
-import { CommunityEntity } from './community.entity';
+import { ContentsTypeEnum } from './contentsType.enum';
+import { CommentLikeEntity } from './commentLike.entity';
 
 @Entity('comment')
 export class CommentEntity extends BaseEntity {
@@ -19,13 +21,21 @@ export class CommentEntity extends BaseEntity {
   @Column()
   content: string;
 
+  @Column({
+    type: 'enum',
+    enum: ContentsTypeEnum,
+  })
+  contentsType: string;
+
+  @Column()
+  contentsId: number;
+
   @ManyToOne(() => UserEntity, (user) => user.comments)
   @JoinColumn()
   user: UserEntity;
 
-  @ManyToOne(() => CommunityEntity, (community) => community.comments)
-  @JoinColumn()
-  community: CommunityEntity;
+  @OneToMany(() => CommentLikeEntity, (commentLike) => commentLike.comment)
+  commentLikes: CommentLikeEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

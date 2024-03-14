@@ -19,6 +19,7 @@ import { ValidateUserGuard } from '../auth/guard/validateUser.guard';
 import { GetCommunityListResDto } from './dto/getCommunityListRes.dto';
 import {
   ApiBadRequestResponse,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -147,6 +148,7 @@ export class CommunityController {
     summary: '커뮤니티 게시글 생성',
     description: '커뮤니티 게시글 생성',
   })
+  @ApiCreatedResponse()
   @ApiBadRequestResponse({
     description: '',
     schema: {
@@ -178,6 +180,7 @@ export class CommunityController {
     summary: '커뮤니티 게시글 수정',
     description: '커뮤니티 게시글 수정',
   })
+  @ApiOkResponse()
   @ApiParam({
     name: 'id',
     description: '커뮤니티 게시글 id',
@@ -232,6 +235,7 @@ export class CommunityController {
     summary: '커뮤니티 게시글 삭제',
     description: '커뮤니티 게시글 삭제',
   })
+  @ApiOkResponse()
   @ApiParam({
     name: 'id',
     description: '커뮤니티 게시글 id',

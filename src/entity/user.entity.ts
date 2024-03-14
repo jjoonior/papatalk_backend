@@ -10,6 +10,7 @@ import {
 import { CommunityEntity } from './community.entity';
 import { CommentEntity } from './comment.entity';
 import { LikeEntity } from './like.entity';
+import { CommentLikeEntity } from './commentLike.entity';
 
 @Entity('user')
 export class UserEntity extends BaseEntity {
@@ -56,6 +57,9 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => LikeEntity, (like) => like.user)
   likes: LikeEntity[];
+
+  @OneToMany(() => CommentLikeEntity, (commentLike) => commentLike.user)
+  commentLikes: CommentLikeEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

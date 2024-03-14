@@ -7,13 +7,17 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
+import { ContentsTypeEnum } from './contentsType.enum';
 
 @Entity('like')
 export class LikeEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: ContentsTypeEnum,
+  })
   contentsType: string;
 
   @Column()

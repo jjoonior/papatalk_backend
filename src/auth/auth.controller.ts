@@ -42,6 +42,7 @@ export class AuthController {
     summary: '회원가입 중복 체크',
     description: '이메일 또는 닉네임의 중복 유무를 확인한다.',
   })
+  @ApiOkResponse()
   @ApiQuery({
     name: 'email',
     description: '페이지',
