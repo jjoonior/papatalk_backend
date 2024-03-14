@@ -8,6 +8,8 @@ import { CommentEntity } from '../entity/comment.entity';
 import { AuthModule } from '../auth/auth.module';
 import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
+import { UtilsModule } from '../utils/utils.module';
+import { ContentsImageEntity } from '../entity/contentsImage.entity';
 
 @Module({
   imports: [
@@ -17,8 +19,10 @@ import { LikeEntity } from '../entity/like.entity';
       CommentEntity,
       CategoryEntity,
       LikeEntity,
+      ContentsImageEntity,
     ]),
     AuthModule,
+    UtilsModule,
   ],
   controllers: [CommunityController],
   providers: [CommunityService],

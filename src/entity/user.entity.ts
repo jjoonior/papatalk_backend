@@ -3,7 +3,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,6 +13,7 @@ import { CommunityEntity } from './community.entity';
 import { CommentEntity } from './comment.entity';
 import { LikeEntity } from './like.entity';
 import { CommentLikeEntity } from './commentLike.entity';
+import { ProfileImageEntity } from './profileImage.entity';
 
 @Entity('user')
 export class UserEntity extends BaseEntity {
@@ -60,6 +63,10 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => CommentLikeEntity, (commentLike) => commentLike.user)
   commentLikes: CommentLikeEntity[];
+
+  @OneToOne(() => ProfileImageEntity, (profileImage) => profileImage.user)
+  @JoinColumn()
+  profileImage: ProfileImageEntity;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -24,4 +24,13 @@ export class CreateCommunityReqDto {
     example: '자유게시판',
   })
   category: string;
+
+  @ApiProperty({
+    description: '이미지',
+    type: String,
+    format: 'binary',
+    required: false,
+    example: '',
+  })
+  images: string;
 }
