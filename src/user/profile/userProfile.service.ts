@@ -1,9 +1,9 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../entity/user.entity';
+import { UserEntity } from '../../entity/user.entity';
 import { Repository } from 'typeorm';
-import { ProfileImageEntity } from '../entity/profileImage.entity';
-import { AwsS3Service } from '../utils/awsS3.service';
+import { ProfileImageEntity } from '../../entity/profileImage.entity';
+import { AwsS3Service } from '../../utils/awsS3.service';
 import * as crypto from 'crypto';
 
 @Injectable()

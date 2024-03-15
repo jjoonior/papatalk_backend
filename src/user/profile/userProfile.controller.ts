@@ -11,7 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserProfileService } from './userProfile.service';
-import { AuthGuard } from '../auth/guard/auth.guard';
+import { AuthGuard } from '../../auth/guard/auth.guard';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,

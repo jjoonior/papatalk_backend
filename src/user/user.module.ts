@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { UserProfileController } from './userProfile.controller';
-import { UserProfileService } from './userProfile.service';
+import { UserProfileController } from './profile/userProfile.controller';
+import { UserProfileService } from './profile/userProfile.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunityEntity } from '../entity/community.entity';
 import { UserEntity } from '../entity/user.entity';
