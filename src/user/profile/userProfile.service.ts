@@ -1,18 +1,18 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../entity/user.entity';
+import { UserEntity } from '../../entity/user.entity';
 import { Repository } from 'typeorm';
-import { ProfileImageEntity } from '../entity/profileImage.entity';
-import { AwsS3Service } from '../utils/awsS3.service';
+import { ProfileImageEntity } from '../../entity/profileImage.entity';
+import { AwsS3Service } from '../../utils/awsS3.service';
 import * as crypto from 'crypto';
 
 @Injectable()
-export class UserService {
+export class UserProfileService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileImageEntity)
-    private readonly ProfileImageRepository: Repository<ProfileImageEntity>, // @InjectRepository(UserEntity) // private readonly userEntityRepository: Repository<UserEntity>,
+    private readonly ProfileImageRepository: Repository<ProfileImageEntity>,
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
@@ -26,7 +26,7 @@ export class UserService {
     }
   }
 
-  async updateUserInfo(user: UserEntity, profileImage, nickname) {
+  async updateUserProfile(user: UserEntity, profileImage, nickname) {
     if (!!nickname) {
       await this.duplicationCheckNickname(user, nickname);
       user.nickname = nickname;

@@ -10,8 +10,8 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { AuthGuard } from '../auth/guard/auth.guard';
+import { UserProfileService } from './userProfile.service';
+import { AuthGuard } from '../../auth/guard/auth.guard';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
@@ -19,23 +19,25 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
+  ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateUserInfoReqDto } from './dto/updateUserInfoReq.dto';
-import { GetUserInfoResDto } from './dto/getUserInfoRes.dto';
+import { UpdateUserProfileReqDto } from './dto/updateUserProfileReq.dto';
+import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
 
-@Controller('user')
+@Controller('user/profile')
 @UseGuards(AuthGuard)
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+@ApiTags('User Profile')
+export class UserProfileController {
+  constructor(private readonly userProfileService: UserProfileService) {}
 
   @Get()
   @ApiOperation({
     summary: '유저 프로필 조회',
     description: '유저 프로필 조회',
   })
-  @ApiOkResponse({ type: GetUserInfoResDto })
-  async getUserInfo(@Req() req) {
+  @ApiOkResponse({ type: GetUserProfileResDto })
+  async getUserProfile(@Req() req) {
     const { user } = req;
     return {
       // id: user.id,
@@ -85,7 +87,7 @@ export class UserController {
     if (!nickname) {
       throw new BadRequestException('닉네임을 입력해주세요.');
     }
-    await this.userService.duplicationCheckNickname(req.user, nickname);
+    await this.userProfileService.duplicationCheckNickname(req.user, nickname);
   }
 
   @Put()
@@ -116,14 +118,18 @@ export class UserController {
       },
     },
   })
-  async updateUserInfo(
+  async updateUserProfile(
     @UploadedFile() profileImage,
-    @Body() dto: UpdateUserInfoReqDto,
+    @Body() dto: UpdateUserProfileReqDto,
     @Req() req,
   ) {
     if (!profileImage && !dto.nickname) {
       throw new BadRequestException('변경할 데이터를 입력해 주세요.');
     }
-    await this.userService.updateUserInfo(req.user, profileImage, dto.nickname);
+    await this.userProfileService.updateUserProfile(
+      req.user,
+      profileImage,
+      dto.nickname,
+    );
   }
 }

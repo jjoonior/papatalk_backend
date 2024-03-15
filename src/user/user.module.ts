@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { UserProfileController } from './profile/userProfile.controller';
+import { UserProfileService } from './profile/userProfile.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunityEntity } from '../entity/community.entity';
 import { UserEntity } from '../entity/user.entity';
@@ -11,6 +11,10 @@ import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AuthModule } from '../auth/auth.module';
 import { UtilsModule } from '../utils/utils.module';
 import { ProfileImageEntity } from '../entity/profileImage.entity';
+import { BabyController } from './baby/baby.controller';
+import { BabyService } from './baby/baby.service';
+import { BabyEntity } from '../entity/baby.entity';
+import { GrowthRecordEntity } from '../entity/growthRecord.entity';
 
 @Module({
   imports: [
@@ -22,11 +26,13 @@ import { ProfileImageEntity } from '../entity/profileImage.entity';
       CategoryEntity,
       LikeEntity,
       ContentsImageEntity,
+      BabyEntity,
+      GrowthRecordEntity,
     ]),
     AuthModule,
     UtilsModule,
   ],
-  controllers: [UserController],
-  providers: [UserService],
+  controllers: [UserProfileController, BabyController],
+  providers: [UserProfileService, BabyService],
 })
 export class UserModule {}

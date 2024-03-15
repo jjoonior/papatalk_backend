@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetUserInfoResDto {
+export class GetUserProfileResDto {
   // @ApiProperty({
   //   description: '유저 id',
   //   type: String,

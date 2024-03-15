@@ -4,6 +4,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -14,6 +16,7 @@ import { CommentEntity } from './comment.entity';
 import { LikeEntity } from './like.entity';
 import { CommentLikeEntity } from './commentLike.entity';
 import { ProfileImageEntity } from './profileImage.entity';
+import { BabyEntity } from './baby.entity';
 
 @Entity('user')
 export class UserEntity extends BaseEntity {
@@ -67,6 +70,10 @@ export class UserEntity extends BaseEntity {
   @OneToOne(() => ProfileImageEntity, (profileImage) => profileImage.user)
   @JoinColumn()
   profileImage: ProfileImageEntity;
+
+  @ManyToMany(() => BabyEntity, (baby) => baby.users)
+  @JoinTable()
+  babies: BabyEntity;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
