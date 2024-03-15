@@ -36,6 +36,7 @@ import {
 } from '@nestjs/swagger';
 import { UpdateCommunityReqDto } from './dto/updateCommunityReq.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { SortEnum } from '../entity/enum/sort.enum';
 
 @Controller('community')
 @ApiTags('Community')
@@ -79,10 +80,13 @@ export class CommunityController {
   @ApiOkResponse({ type: GetCommunityListResDto })
   async getCommunityList(
     @Query('page') page = 1,
-    @Query('sort') sort = 'createdAt',
+    @Query('sort') sort = SortEnum.CREATED_AT,
     @Query('search') search = '',
     @Query('take') take = 10,
   ): Promise<GetCommunityListResDto> {
+    if (!Object.values(SortEnum).includes(sort)) {
+      sort = SortEnum.CREATED_AT;
+    }
     const [communityList, totalCount] =
       await this.communityService.getCommunityList(page, sort, search, take);
     const totalPage = Math.ceil(totalCount / take);

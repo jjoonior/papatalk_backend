@@ -14,6 +14,7 @@ import { LikeEntity } from '../entity/like.entity';
 import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
+import { SortEnum } from '../entity/enum/sort.enum';
 
 @Injectable()
 export class CommunityService {
@@ -35,32 +36,55 @@ export class CommunityService {
 
   async getCommunityList(
     page: number,
-    sort: string,
+    sort: SortEnum,
     search: string,
     take: number,
   ) {
     const skip = (page - 1) * take;
-
-    return await this.communityRepository.findAndCount({
-      select: {
-        id: true,
-        title: true,
-        views: true,
-        likes: true,
-        createdAt: true,
-        user: {
-          nickname: true,
-        },
-        category: {
-          category: true,
-        },
-      },
-      skip,
-      take,
-      where: { title: Like(`%${search}%`) },
-      order: { createdAt: 'desc' },
-      relations: { user: true, category: true },
-    });
+    switch (sort) {
+      case SortEnum.CREATED_AT:
+        return await this.communityRepository.findAndCount({
+          select: {
+            id: true,
+            title: true,
+            views: true,
+            likes: true,
+            createdAt: true,
+            user: {
+              nickname: true,
+            },
+            category: {
+              category: true,
+            },
+          },
+          skip,
+          take,
+          where: { title: Like(`%${search}%`) },
+          order: { createdAt: 'desc' },
+          relations: { user: true, category: true },
+        });
+      case SortEnum.LIKES:
+        return await this.communityRepository.findAndCount({
+          select: {
+            id: true,
+            title: true,
+            views: true,
+            likes: true,
+            createdAt: true,
+            user: {
+              nickname: true,
+            },
+            category: {
+              category: true,
+            },
+          },
+          skip,
+          take,
+          where: { title: Like(`%${search}%`) },
+          order: { likes: 'desc' },
+          relations: { user: true, category: true },
+        });
+    }
   }
 
   async getCommunityDetail(id: number) {
