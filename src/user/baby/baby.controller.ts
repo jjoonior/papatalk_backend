@@ -42,4 +42,14 @@ export class BabyController {
       dto.weight,
     );
   }
+
+  @Get('record')
+  async getRecordList(@Req() req) {
+    const baby = await this.babyService.getBabyInfo(req.user);
+    if (!baby) {
+      throw new NotFoundException('저장된 아기 정보가 없습니다.');
+    }
+
+    return await this.babyService.getRecordList(baby);
+  }
 }

@@ -69,4 +69,26 @@ export class BabyService {
       })
       .save();
   }
+
+  async getRecordList(baby: BabyEntity) {
+    const result = await this.growthRecordRepository.find({
+      where: { baby: { id: baby.id } },
+      order: { month: 'ASC', createdAt: 'DESC' },
+    });
+
+    const set = new Set();
+    const recordList = [];
+    result.forEach((r) => {
+      if (!set.has(r.month)) {
+        set.add(r.month);
+        recordList.push({
+          month: r.month,
+          height: r.height,
+          weight: r.weight,
+        });
+      }
+    });
+
+    return recordList;
+  }
 }
