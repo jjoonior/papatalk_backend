@@ -19,13 +19,15 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
+  ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateUserInfoReqDto } from './dto/updateUserInfoReq.dto';
-import { GetUserInfoResDto } from './dto/getUserInfoRes.dto';
+import { UpdateUserProfileReqDto } from './dto/updateUserProfileReq.dto';
+import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
 
-@Controller('user')
+@Controller('user/profile')
 @UseGuards(AuthGuard)
+@ApiTags('User Profile')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -34,8 +36,8 @@ export class UserController {
     summary: '유저 프로필 조회',
     description: '유저 프로필 조회',
   })
-  @ApiOkResponse({ type: GetUserInfoResDto })
-  async getUserInfo(@Req() req) {
+  @ApiOkResponse({ type: GetUserProfileResDto })
+  async getUserProfile(@Req() req) {
     const { user } = req;
     return {
       // id: user.id,
@@ -116,14 +118,18 @@ export class UserController {
       },
     },
   })
-  async updateUserInfo(
+  async updateUserProfile(
     @UploadedFile() profileImage,
-    @Body() dto: UpdateUserInfoReqDto,
+    @Body() dto: UpdateUserProfileReqDto,
     @Req() req,
   ) {
     if (!profileImage && !dto.nickname) {
       throw new BadRequestException('변경할 데이터를 입력해 주세요.');
     }
-    await this.userService.updateUserInfo(req.user, profileImage, dto.nickname);
+    await this.userService.updateUserProfile(
+      req.user,
+      profileImage,
+      dto.nickname,
+    );
   }
 }

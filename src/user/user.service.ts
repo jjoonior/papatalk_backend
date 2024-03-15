@@ -26,7 +26,7 @@ export class UserService {
     }
   }
 
-  async updateUserInfo(user: UserEntity, profileImage, nickname) {
+  async updateUserProfile(user: UserEntity, profileImage, nickname) {
     if (!!nickname) {
       await this.duplicationCheckNickname(user, nickname);
       user.nickname = nickname;
