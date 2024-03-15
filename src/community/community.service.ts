@@ -11,7 +11,7 @@ import { CommunityEntity } from '../entity/community.entity';
 import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
-import { ContentsTypeEnum } from '../entity/contentsType.enum';
+import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
 

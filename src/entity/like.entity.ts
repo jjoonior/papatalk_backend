@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
-import { ContentsTypeEnum } from './contentsType.enum';
+import { ContentsTypeEnum } from './enum/contentsType.enum';
 
 @Entity('like')
 export class LikeEntity extends BaseEntity {
