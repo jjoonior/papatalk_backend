@@ -7,6 +7,7 @@ import { CommunityModule } from './community/community.module';
 import { CommentModule } from './comment/comment.module';
 import * as redisStore from 'cache-manager-ioredis';
 import { UtilsModule } from './utils/utils.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UtilsModule } from './utils/utils.module';
     CommunityModule,
     CommentModule,
     UtilsModule,
+    UserModule,
   ],
 })
 export class AppModule {}
