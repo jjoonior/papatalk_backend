@@ -204,9 +204,13 @@ export class CommunityService {
     });
 
     if (liked) {
+      community.likes--;
+      await community.save();
       await this.likeRepository.remove(liked);
       return false;
     } else {
+      community.likes++;
+      await community.save();
       await this.likeRepository
         .create({
           contentsType: ContentsTypeEnum.COMMUNITY,
