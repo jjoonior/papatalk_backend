@@ -69,11 +69,20 @@ export class AuthService {
     const newUser = await this.userEntityRepository.save(newUserObject);
 
     const token = await this.signToken(res, newUser);
-    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+    return {
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      userId: newUser.id,
+      nickname: newUser.nickname,
+      profileImage: newUser.nickname,
+    };
   }
 
   async login(res, email: string, password: string) {
-    const user = await this.userEntityRepository.findOneBy({ email });
+    const user = await this.userEntityRepository.findOne({
+      where: { email },
+      relations: { profileImage: true },
+    });
     if (!user) {
       throw new UnauthorizedException('로그인에 실패했습니다.');
     }
@@ -84,7 +93,13 @@ export class AuthService {
     }
 
     const token = await this.signToken(res, user);
-    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+    return {
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      userId: user.id,
+      nickname: user.nickname,
+      profileImage: user.profileImage?.url || user.nickname,
+    };
   }
 
   async signToken(res, user) {
@@ -168,8 +183,19 @@ export class AuthService {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
 
+    const user = await this.userEntityRepository.findOne({
+      where: { id: payload.id },
+      relations: { profileImage: true },
+    });
+
     const token = await this.signToken(res, payload);
-    return { accessToken: token.accessToken, refreshToken: token.refreshToken };
+    return {
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      userId: user.id,
+      nickname: user.nickname,
+      profileImage: user.profileImage?.url || user.nickname,
+    };
   }
 
   async getUserByPayload(payload): Promise<UserEntity> {
