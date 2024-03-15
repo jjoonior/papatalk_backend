@@ -279,7 +279,8 @@ export class CommunityController {
   ) {
     const community = await this.communityService.getCommunity(id);
     await this.communityService.isAuthor(req.user, community);
-    await this.communityService.deleteCommunity(community);
+    const s3KeyList = await this.communityService.deleteCommunity(community);
+    await this.communityService.deleteCommunityImages(s3KeyList);
 
     // return res.status(302).redirect('/community');
   }

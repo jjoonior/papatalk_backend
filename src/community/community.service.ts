@@ -170,7 +170,23 @@ export class CommunityService {
   }
 
   async deleteCommunity(community: CommunityEntity) {
+    const images = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+
+    const s3KeyList = images.map((image: ContentsImageEntity) => image.key);
+
+    await this.contentsImageRepository.remove(images);
     await this.communityRepository.remove(community);
+
+    return s3KeyList;
+  }
+
+  async deleteCommunityImages(keys: string[]) {
+    return await Promise.all(
+      keys.map((key) => this.awsS3Service.deleteFile(key)),
+    );
   }
 
   async toggleCommunityLike(user: UserEntity, community: CommunityEntity) {
