@@ -11,9 +11,10 @@ import { CommunityEntity } from '../entity/community.entity';
 import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
-import { ContentsTypeEnum } from '../entity/contentsType.enum';
+import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
+import { SortEnum } from '../entity/enum/sort.enum';
 
 @Injectable()
 export class CommunityService {
@@ -35,39 +36,69 @@ export class CommunityService {
 
   async getCommunityList(
     page: number,
-    sort: string,
+    sort: SortEnum,
     search: string,
     take: number,
   ) {
     const skip = (page - 1) * take;
-
-    return await this.communityRepository.findAndCount({
-      select: {
-        id: true,
-        title: true,
-        views: true,
-        likes: true,
-        createdAt: true,
-        user: {
-          nickname: true,
-        },
-        category: {
-          category: true,
-        },
-      },
-      skip,
-      take,
-      where: { title: Like(`%${search}%`) },
-      order: { createdAt: 'desc' },
-      relations: { user: true, category: true },
-    });
+    switch (sort) {
+      case SortEnum.CREATED_AT:
+        return await this.communityRepository.findAndCount({
+          select: {
+            id: true,
+            title: true,
+            views: true,
+            likes: true,
+            createdAt: true,
+            user: {
+              nickname: true,
+            },
+            category: {
+              category: true,
+            },
+          },
+          skip,
+          take,
+          where: { title: Like(`%${search}%`) },
+          order: { createdAt: 'desc' },
+          relations: { user: true, category: true },
+        });
+      case SortEnum.LIKES:
+        return await this.communityRepository.findAndCount({
+          select: {
+            id: true,
+            title: true,
+            views: true,
+            likes: true,
+            createdAt: true,
+            user: {
+              nickname: true,
+            },
+            category: {
+              category: true,
+            },
+          },
+          skip,
+          take,
+          where: { title: Like(`%${search}%`) },
+          order: { likes: 'desc' },
+          relations: { user: true, category: true },
+        });
+    }
   }
 
   async getCommunityDetail(id: number) {
     const community = await this.communityRepository.findOne({
       where: { id },
-      relations: { user: true, category: true },
+      relations: { user: { profileImage: true }, category: true },
     });
+
+    const images = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+
+    community['images'] = images.map((image) => image.url);
 
     if (!community) {
       throw new NotFoundException('존재하지 않는 게시글입니다.');
@@ -170,6 +201,48 @@ export class CommunityService {
   }
 
   async deleteCommunity(community: CommunityEntity) {
+    const images = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+
+    const s3KeyList = images.map((image: ContentsImageEntity) => image.key);
+
+    await this.contentsImageRepository.remove(images);
     await this.communityRepository.remove(community);
+
+    return s3KeyList;
+  }
+
+  async deleteCommunityImages(keys: string[]) {
+    return await Promise.all(
+      keys.map((key) => this.awsS3Service.deleteFile(key)),
+    );
+  }
+
+  async toggleCommunityLike(user: UserEntity, community: CommunityEntity) {
+    const liked = await this.likeRepository.findOneBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+      user: { id: user.id },
+    });
+
+    if (liked) {
+      community.likes--;
+      await community.save();
+      await this.likeRepository.remove(liked);
+      return false;
+    } else {
+      community.likes++;
+      await community.save();
+      await this.likeRepository
+        .create({
+          contentsType: ContentsTypeEnum.COMMUNITY,
+          contentsId: community.id,
+          user,
+        })
+        .save();
+      return true;
+    }
   }
 }

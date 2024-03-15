@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
 import { CommentEntity } from '../entity/comment.entity';
-import { ContentsTypeEnum } from '../entity/contentsType.enum';
+import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { CommentLikeEntity } from '../entity/commentLike.entity';
 
 @Injectable()

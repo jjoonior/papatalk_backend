@@ -30,6 +30,7 @@ import { CreateCommentReqDto } from './dto/createCommentReq.dto';
 import { ValidateUserGuard } from '../auth/guard/validateUser.guard';
 import { UpdateCommentReqDto } from './dto/updateCommentReq.dto';
 import { GetCommentListResDto } from './dto/getCommentListRes.dto';
+import { SortEnum } from '../entity/enum/sort.enum';
 
 @Controller('/community/:communityId/comments')
 @ApiTags('Community Comment')
@@ -84,10 +85,13 @@ export class CommentController {
   async getCommentList(
     @Param('communityId') contentsId: number,
     @Query('page') page = 1,
-    @Query('sort') sort = 'createdAt',
+    @Query('sort') sort = SortEnum.CREATED_AT,
     @Query('take') take = 10,
     @Req() req,
   ): Promise<GetCommentListResDto> {
+    if (!Object.values(SortEnum).includes(sort)) {
+      sort = SortEnum.CREATED_AT;
+    }
     const [commentList, totalCount] = await this.commentService.getCommentList(
       contentsId,
       page,

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -24,6 +25,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -34,6 +36,7 @@ import {
 } from '@nestjs/swagger';
 import { UpdateCommunityReqDto } from './dto/updateCommunityReq.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { SortEnum } from '../entity/enum/sort.enum';
 
 @Controller('community')
 @ApiTags('Community')
@@ -77,10 +80,13 @@ export class CommunityController {
   @ApiOkResponse({ type: GetCommunityListResDto })
   async getCommunityList(
     @Query('page') page = 1,
-    @Query('sort') sort = 'createdAt',
+    @Query('sort') sort = SortEnum.CREATED_AT,
     @Query('search') search = '',
     @Query('take') take = 10,
   ): Promise<GetCommunityListResDto> {
+    if (!Object.values(SortEnum).includes(sort)) {
+      sort = SortEnum.CREATED_AT;
+    }
     const [communityList, totalCount] =
       await this.communityService.getCommunityList(page, sort, search, take);
     const totalPage = Math.ceil(totalCount / take);
@@ -137,11 +143,14 @@ export class CommunityController {
       title: community.title,
       content: community.content,
       category: community.category.category,
+      images: community['images'],
       views: community.views,
       likes: community.likes,
       liked: liked,
       authorId: community.user.id,
       authorNickname: community.user.nickname,
+      authorProfileImage:
+        community.user.profileImage?.url || community.user.nickname,
       createdAt: community.createdAt,
     };
   }
@@ -277,8 +286,57 @@ export class CommunityController {
   ) {
     const community = await this.communityService.getCommunity(id);
     await this.communityService.isAuthor(req.user, community);
-    await this.communityService.deleteCommunity(community);
+    const s3KeyList = await this.communityService.deleteCommunity(community);
+    await this.communityService.deleteCommunityImages(s3KeyList);
 
     // return res.status(302).redirect('/community');
+  }
+
+  @Post(':id/like')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: '커뮤니티 게시글 추천 토글',
+    description: '커뮤니티 게시글 추천 토글',
+  })
+  @ApiParam({
+    name: 'id',
+    description: '커뮤니티 게시글 id',
+    example: 1,
+    type: Number,
+  })
+  @ApiCreatedResponse({ description: '추천 true' })
+  @ApiNoContentResponse({ description: '추천 false' })
+  @ApiUnauthorizedResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '권한이 없습니다.',
+        error: 'Unauthorized',
+        statusCode: 401,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: '',
+    schema: {
+      example: {
+        message: '존재하지 않는 글입니다.',
+        error: 'NotFound',
+        statusCode: 404,
+      },
+    },
+  })
+  async toggleCommentLike(@Param('id') id: number, @Req() req, @Res() res) {
+    const community = await this.communityService.getCommunity(id);
+    const liked = await this.communityService.toggleCommunityLike(
+      req.user,
+      community,
+    );
+
+    if (liked) {
+      return res.status(HttpStatus.CREATED).send();
+    } else {
+      return res.status(HttpStatus.NO_CONTENT).send();
+    }
   }
 }

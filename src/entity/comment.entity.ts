@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
-import { ContentsTypeEnum } from './contentsType.enum';
+import { ContentsTypeEnum } from './enum/contentsType.enum';
 import { CommentLikeEntity } from './commentLike.entity';
 
 @Entity('comment')

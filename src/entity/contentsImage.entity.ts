@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ContentsTypeEnum } from './contentsType.enum';
+import { ContentsTypeEnum } from './enum/contentsType.enum';
 
 @Entity('contentsImage')
 export class ContentsImageEntity extends BaseEntity {
