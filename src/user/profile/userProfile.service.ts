@@ -12,7 +12,7 @@ export class UserProfileService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(ProfileImageEntity)
-    private readonly ProfileImageRepository: Repository<ProfileImageEntity>, // @InjectRepository(UserEntity) // private readonly userEntityRepository: Repository<UserEntity>,
+    private readonly ProfileImageRepository: Repository<ProfileImageEntity>,
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
