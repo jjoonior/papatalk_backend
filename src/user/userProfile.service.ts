@@ -7,7 +7,7 @@ import { AwsS3Service } from '../utils/awsS3.service';
 import * as crypto from 'crypto';
 
 @Injectable()
-export class UserService {
+export class UserProfileService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,

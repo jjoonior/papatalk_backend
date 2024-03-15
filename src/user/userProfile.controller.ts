@@ -10,7 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UserProfileService } from './userProfile.service';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import {
   ApiBadRequestResponse,
@@ -28,8 +28,8 @@ import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
 @Controller('user/profile')
 @UseGuards(AuthGuard)
 @ApiTags('User Profile')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UserProfileController {
+  constructor(private readonly userProfileService: UserProfileService) {}
 
   @Get()
   @ApiOperation({
@@ -87,7 +87,7 @@ export class UserController {
     if (!nickname) {
       throw new BadRequestException('닉네임을 입력해주세요.');
     }
-    await this.userService.duplicationCheckNickname(req.user, nickname);
+    await this.userProfileService.duplicationCheckNickname(req.user, nickname);
   }
 
   @Put()
@@ -126,7 +126,7 @@ export class UserController {
     if (!profileImage && !dto.nickname) {
       throw new BadRequestException('변경할 데이터를 입력해 주세요.');
     }
-    await this.userService.updateUserProfile(
+    await this.userProfileService.updateUserProfile(
       req.user,
       profileImage,
       dto.nickname,

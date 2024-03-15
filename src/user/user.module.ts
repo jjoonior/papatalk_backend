@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { UserProfileController } from './userProfile.controller';
+import { UserProfileService } from './userProfile.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunityEntity } from '../entity/community.entity';
 import { UserEntity } from '../entity/user.entity';
@@ -26,7 +26,7 @@ import { ProfileImageEntity } from '../entity/profileImage.entity';
     AuthModule,
     UtilsModule,
   ],
-  controllers: [UserController],
-  providers: [UserService],
+  controllers: [UserProfileController],
+  providers: [UserProfileService],
 })
 export class UserModule {}
