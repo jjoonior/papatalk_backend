@@ -32,4 +32,18 @@ export class AwsS3Service {
 
     return { url: uploadResult.Location, key: uploadResult.Key };
   }
+
+  async deleteFile(Key: string): Promise<void> {
+    const deleteParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key,
+    };
+
+    try {
+      await this.s3.deleteObject(deleteParams).promise();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }
