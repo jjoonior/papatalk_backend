@@ -66,8 +66,15 @@ export class CommunityService {
   async getCommunityDetail(id: number) {
     const community = await this.communityRepository.findOne({
       where: { id },
-      relations: { user: true, category: true },
+      relations: { user: { profileImage: true }, category: true },
     });
+
+    const images = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+
+    community['images'] = images.map((image) => image.url);
 
     if (!community) {
       throw new NotFoundException('존재하지 않는 게시글입니다.');

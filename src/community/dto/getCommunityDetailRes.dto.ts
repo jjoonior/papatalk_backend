@@ -30,6 +30,17 @@ export class GetCommunityDetailResDto {
   category: string;
 
   @ApiProperty({
+    description: '이미지',
+    type: [String],
+    example: [
+      'https://papatalk.s3.ap-northeast-2.amazonaws.com/63e53824-e823-4f2e-94bd-731c6cb7fd8b',
+      'https://papatalk.s3.ap-northeast-2.amazonaws.com/d53da27f-dbf9-4f20-8055-6aee4639fcb2',
+      'https://papatalk.s3.ap-northeast-2.amazonaws.com/2a908bfa-8bad-4881-a062-c93432caa079',
+    ],
+  })
+  images: string[];
+
+  @ApiProperty({
     description: '조회수',
     type: Number,
     example: 44,
@@ -65,9 +76,17 @@ export class GetCommunityDetailResDto {
   authorNickname: string;
 
   @ApiProperty({
+    description: '작성자 프로필 이미지',
+    type: String,
+    example:
+      'https://papatalk.s3.ap-northeast-2.amazonaws.com/63e53824-e823-4f2e-94bd-731c6cb7fd8b',
+  })
+  authorProfileImage: string;
+
+  @ApiProperty({
     description: '생성 날짜',
     type: Date,
-    // example: ,
+    example: '2024-03-14T10:39:24.712Z',
   })
   createdAt: Date;
 }

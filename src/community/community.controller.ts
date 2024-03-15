@@ -139,11 +139,14 @@ export class CommunityController {
       title: community.title,
       content: community.content,
       category: community.category.category,
+      images: community['images'],
       views: community.views,
       likes: community.likes,
       liked: liked,
       authorId: community.user.id,
       authorNickname: community.user.nickname,
+      authorProfileImage:
+        community.user.profileImage?.url || community.user.nickname,
       createdAt: community.createdAt,
     };
   }
