@@ -15,6 +15,7 @@ import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
 import { SortEnum } from '../entity/enum/sort.enum';
+import crypto from 'crypto';
 
 @Injectable()
 export class CommunityService {
@@ -150,7 +151,10 @@ export class CommunityService {
 
     //todo 확장자 체크
     const s3ResultList = await Promise.all(
-      images.map((image) => this.awsS3Service.uploadFile(image)),
+      images.map((image) => {
+        const key = crypto.randomUUID();
+        this.awsS3Service.uploadFile(key, image);
+      }),
     );
 
     s3ResultList.forEach((r) => {

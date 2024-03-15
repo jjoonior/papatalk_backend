@@ -173,6 +173,9 @@ export class AuthService {
   }
 
   async getUserByPayload(payload): Promise<UserEntity> {
-    return await this.userEntityRepository.findOneBy({ id: payload.id });
+    return await this.userEntityRepository.findOne({
+      where: { id: payload.id },
+      relations: { profileImage: true },
+    });
   }
 }

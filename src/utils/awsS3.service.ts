@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { ManagedUpload } from 'aws-sdk/clients/s3';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class AwsS3Service {
@@ -17,10 +16,10 @@ export class AwsS3Service {
     });
   }
 
-  async uploadFile(file): Promise<any> {
+  async uploadFile(Key, file): Promise<any> {
     const uploadParams: S3.Types.PutObjectRequest = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: crypto.randomUUID(),
+      Key,
       Body: file.buffer,
       ContentType: file.mimetype,
       ACL: 'public-read',
