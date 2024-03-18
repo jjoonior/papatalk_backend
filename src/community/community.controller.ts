@@ -39,7 +39,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { SortEnum } from '../entity/enum/sort.enum';
 
 @Controller('community')
-@ApiTags('Community')
+@ApiTags('Contents - Community')
 @ApiInternalServerErrorResponse({
   schema: {
     example: {

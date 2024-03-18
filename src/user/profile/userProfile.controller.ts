@@ -25,9 +25,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserProfileReqDto } from './dto/updateUserProfileReq.dto';
 import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
 
-@Controller('user/profile')
+@Controller('users/profile')
 @UseGuards(AuthGuard)
-@ApiTags('User Profile')
+@ApiTags('User - Profile')
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 
