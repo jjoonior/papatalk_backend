@@ -153,7 +153,7 @@ export class CommunityService {
     const s3ResultList = await Promise.all(
       images.map((image) => {
         const key = crypto.randomUUID();
-        this.awsS3Service.uploadFile(key, image);
+        return this.awsS3Service.uploadFile(key, image);
       }),
     );
 
