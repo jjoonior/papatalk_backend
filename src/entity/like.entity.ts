@@ -18,7 +18,7 @@ export class LikeEntity extends BaseEntity {
     type: 'enum',
     enum: ContentsTypeEnum,
   })
-  contentsType: string;
+  contentsType: ContentsTypeEnum;
 
   @Column()
   contentsId: number;

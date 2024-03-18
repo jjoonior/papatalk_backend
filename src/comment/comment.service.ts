@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CommunityEntity } from '../entity/community.entity';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
@@ -10,8 +9,6 @@ import { CommentLikeEntity } from '../entity/commentLike.entity';
 @Injectable()
 export class CommentService {
   constructor(
-    @InjectRepository(CommunityEntity)
-    private readonly communityRepository: Repository<CommunityEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(CommentLikeEntity)
@@ -19,6 +16,7 @@ export class CommentService {
   ) {}
 
   async getCommentList(
+    contentsType: ContentsTypeEnum,
     contentsId: number,
     page: number,
     sort: string,
@@ -32,7 +30,7 @@ export class CommentService {
       .leftJoinAndSelect('c.user', 'u')
       .loadRelationCountAndMap('c.likes', 'c.commentLikes')
       .where('c.contentsType = :contentsType', {
-        contentsType: ContentsTypeEnum.COMMUNITY,
+        contentsType,
       })
       .andWhere('c.contentsId = :contentsId', {
         contentsId,
@@ -58,20 +56,30 @@ export class CommentService {
     return likedCommentList.map((c) => c.comment.id);
   }
 
-  async createComment(contentsId: number, content: string, user: UserEntity) {
+  async createComment(
+    contentsType: ContentsTypeEnum,
+    contentsId: number,
+    content: string,
+    user: UserEntity,
+  ) {
     return await this.commentRepository
       .create({
         content,
-        contentsType: ContentsTypeEnum.COMMUNITY,
+        contentsType,
         contentsId,
         user,
       })
       .save();
   }
 
-  async updateComment(contentsId: number, id: number, content: string) {
+  async updateComment(
+    contentsType: ContentsTypeEnum,
+    contentsId: number,
+    id: number,
+    content: string,
+  ) {
     const comment = await this.commentRepository.findOneBy({
-      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsType,
       contentsId,
       id,
     });
@@ -82,16 +90,19 @@ export class CommentService {
     return comment;
   }
 
-  async deleteComment(contentsId: number, id: number) {
-    // await this.commentRepository.remove(community);
+  async deleteComment(
+    contentsType: ContentsTypeEnum,
+    contentsId: number,
+    id: number,
+  ) {
     return await this.commentRepository.delete({
-      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsType,
       contentsId,
       id,
     });
   }
 
-  async toggleCommentLike(user: UserEntity, contentsId: number, id: number) {
+  async toggleCommentLike(user: UserEntity, id: number) {
     const liked = await this.commentLikeRepository.findOneBy({
       user: { id: user.id },
       comment: { id },

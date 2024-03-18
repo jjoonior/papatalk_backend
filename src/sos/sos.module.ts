@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { CommentController } from './comment.controller';
-import { CommentService } from './comment.service';
+import { SosController } from './sos.controller';
+import { SosService } from './sos.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunityEntity } from '../entity/community.entity';
 import { UserEntity } from '../entity/user.entity';
 import { CommentEntity } from '../entity/comment.entity';
-import { CategoryEntity } from '../entity/category.entity';
+import { LikeEntity } from '../entity/like.entity';
+import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AuthModule } from '../auth/auth.module';
-import { CommentLikeEntity } from '../entity/commentLike.entity';
+import { UtilsModule } from '../utils/utils.module';
 import { SosEntity } from '../entity/sos.entity';
 
 @Module({
@@ -16,13 +17,14 @@ import { SosEntity } from '../entity/sos.entity';
       CommunityEntity,
       UserEntity,
       CommentEntity,
-      CategoryEntity,
-      CommentLikeEntity,
+      LikeEntity,
+      ContentsImageEntity,
       SosEntity,
     ]),
     AuthModule,
+    UtilsModule,
   ],
-  controllers: [CommentController],
-  providers: [CommentService],
+  controllers: [SosController],
+  providers: [SosService],
 })
-export class CommentModule {}
+export class SosModule {}

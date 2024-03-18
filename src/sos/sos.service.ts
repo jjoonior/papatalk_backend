@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,27 +6,24 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
 import { Like, Repository } from 'typeorm';
-import { CommunityEntity } from '../entity/community.entity';
 import { CommentEntity } from '../entity/comment.entity';
-import { CategoryEntity } from '../entity/category.entity';
 import { LikeEntity } from '../entity/like.entity';
 import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
 import { SortEnum } from '../entity/enum/sort.enum';
 import crypto from 'crypto';
+import { SosEntity } from '../entity/sos.entity';
 
 @Injectable()
-export class CommunityService {
+export class SosService {
   constructor(
-    @InjectRepository(CommunityEntity)
-    private readonly communityRepository: Repository<CommunityEntity>,
+    @InjectRepository(SosEntity)
+    private readonly sosRepository: Repository<SosEntity>,
     @InjectRepository(UserEntity)
     private readonly userEntityRepository: Repository<UserEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentRepository: Repository<CommentEntity>,
-    @InjectRepository(CategoryEntity)
-    private readonly categoryRepository: Repository<CategoryEntity>,
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
     @InjectRepository(ContentsImageEntity)
@@ -35,16 +31,11 @@ export class CommunityService {
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
-  async getCommunityList(
-    page: number,
-    sort: SortEnum,
-    search: string,
-    take: number,
-  ) {
+  async getSosList(page: number, sort: SortEnum, search: string, take: number) {
     const skip = (page - 1) * take;
     switch (sort) {
       case SortEnum.CREATED_AT:
-        return await this.communityRepository.findAndCount({
+        return await this.sosRepository.findAndCount({
           select: {
             id: true,
             title: true,
@@ -53,19 +44,16 @@ export class CommunityService {
             createdAt: true,
             user: {
               nickname: true,
-            },
-            category: {
-              category: true,
             },
           },
           skip,
           take,
           where: { title: Like(`%${search}%`) },
           order: { createdAt: 'desc' },
-          relations: { user: true, category: true },
+          relations: { user: true },
         });
       case SortEnum.LIKES:
-        return await this.communityRepository.findAndCount({
+        return await this.sosRepository.findAndCount({
           select: {
             id: true,
             title: true,
@@ -75,46 +63,43 @@ export class CommunityService {
             user: {
               nickname: true,
             },
-            category: {
-              category: true,
-            },
           },
           skip,
           take,
           where: { title: Like(`%${search}%`) },
           order: { likes: 'desc' },
-          relations: { user: true, category: true },
+          relations: { user: true },
         });
     }
   }
 
-  async getCommunityDetail(id: number) {
-    const community = await this.communityRepository.findOne({
+  async getSosDetail(id: number) {
+    const sos = await this.sosRepository.findOne({
       where: { id },
-      relations: { user: { profileImage: true }, category: true },
+      relations: { user: { profileImage: true } },
     });
 
     const images = await this.contentsImageRepository.findBy({
-      contentsType: ContentsTypeEnum.COMMUNITY,
-      contentsId: community.id,
+      contentsType: ContentsTypeEnum.SOS,
+      contentsId: sos.id,
     });
 
-    community['images'] = images.map((image) => image.url);
+    sos['images'] = images.map((image) => image.url);
 
-    if (!community) {
+    if (!sos) {
       throw new NotFoundException('존재하지 않는 게시글입니다.');
     }
 
-    community.views++;
-    await community.save();
+    sos.views++;
+    await sos.save();
 
-    return community;
+    return sos;
   }
 
   async isLiked(user: UserEntity, id: number) {
     const liked = await this.likeRepository.findOne({
       where: {
-        contentsType: ContentsTypeEnum.COMMUNITY,
+        contentsType: ContentsTypeEnum.SOS,
         contentsId: id,
         user: { id: user.id },
       },
@@ -123,30 +108,17 @@ export class CommunityService {
     return !!liked;
   }
 
-  async createCommunity(
-    user: UserEntity,
-    title: string,
-    content: string,
-    category: string,
-  ) {
-    const categoryEntity = await this.categoryRepository.findOneBy({
-      category,
-    });
-    if (!categoryEntity) {
-      throw new BadRequestException('존재하지 않는 카테고리입니다.');
-    }
-
-    return await this.communityRepository
+  async createSos(user: UserEntity, title: string, content: string) {
+    return await this.sosRepository
       .create({
         user,
         title,
         content,
-        category: categoryEntity,
       })
       .save();
   }
 
-  async saveCommunityImages(community: CommunityEntity, images) {
+  async saveSosImages(sos: SosEntity, images) {
     const contentsImageList: ContentsImageEntity[] = [];
 
     //todo 확장자 체크
@@ -161,8 +133,8 @@ export class CommunityService {
       const contentsImage = new ContentsImageEntity();
       contentsImage.key = r.key;
       contentsImage.url = r.url;
-      contentsImage.contentsType = ContentsTypeEnum.COMMUNITY;
-      contentsImage.contentsId = community.id;
+      contentsImage.contentsType = ContentsTypeEnum.SOS;
+      contentsImage.contentsId = sos.id;
 
       contentsImageList.push(contentsImage);
     });
@@ -170,79 +142,71 @@ export class CommunityService {
     return await this.contentsImageRepository.insert(contentsImageList);
   }
 
-  async getCommunity(id: number) {
-    const community = await this.communityRepository.findOne({
+  async getSos(id: number) {
+    const sos = await this.sosRepository.findOne({
       where: { id },
       relations: { user: true },
     });
 
-    if (!community) {
+    if (!sos) {
       throw new NotFoundException('존재하지 않는 글입니다.');
     }
 
-    return community;
+    return sos;
   }
 
-  async isAuthor(user: UserEntity, community: CommunityEntity) {
-    if (user.id != community.user.id) {
+  async isAuthor(user: UserEntity, sos: SosEntity) {
+    if (user.id != sos.user.id) {
       throw new UnauthorizedException('권한이 없습니다.');
     }
   }
 
-  async updateCommunity(community: CommunityEntity, dto) {
-    const categoryEntity = await this.categoryRepository.findOneBy({
-      category: dto.category,
-    });
-    if (!categoryEntity) {
-      throw new BadRequestException('존재하지 않는 카테고리입니다.');
-    }
+  async updateSos(sos: SosEntity, dto) {
+    sos.title = dto.title;
+    sos.content = dto.content;
 
-    community.title = dto.title;
-    community.content = dto.content;
-    community.category = categoryEntity;
-
-    await community.save();
+    await sos.save();
   }
 
-  async deleteCommunity(community: CommunityEntity) {
+  async deleteSos(sos: SosEntity) {
     const images = await this.contentsImageRepository.findBy({
-      contentsType: ContentsTypeEnum.COMMUNITY,
-      contentsId: community.id,
+      contentsType: ContentsTypeEnum.SOS,
+      contentsId: sos.id,
     });
 
     const s3KeyList = images.map((image: ContentsImageEntity) => image.key);
 
     await this.contentsImageRepository.remove(images);
-    await this.communityRepository.remove(community);
+    await this.sosRepository.remove(sos);
 
     return s3KeyList;
   }
 
-  async deleteCommunityImages(keys: string[]) {
+  async deleteSosImages(keys: string[]) {
     return await Promise.all(
       keys.map((key) => this.awsS3Service.deleteFile(key)),
     );
   }
 
-  async toggleCommunityLike(user: UserEntity, community: CommunityEntity) {
+  async toggleSosLike(user: UserEntity, sos: SosEntity) {
     const liked = await this.likeRepository.findOneBy({
-      contentsType: ContentsTypeEnum.COMMUNITY,
-      contentsId: community.id,
+      contentsType: ContentsTypeEnum.SOS,
+      contentsId: sos.id,
       user: { id: user.id },
     });
 
     if (liked) {
-      community.likes--;
-      await community.save();
+      sos.likes--;
+      await sos.save();
       await this.likeRepository.remove(liked);
       return false;
     } else {
-      community.likes++;
-      await community.save();
+      sos.likes++;
+      await sos.save();
       await this.likeRepository
         .create({
-          contentsType: ContentsTypeEnum.COMMUNITY,
-          contentsId: community.id,
+          contentsType: ContentsTypeEnum.SOS,
+          contentsId: sos.id,
           user,
         })
         .save();

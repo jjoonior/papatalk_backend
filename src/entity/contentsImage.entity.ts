@@ -12,7 +12,10 @@ export class ContentsImageEntity extends BaseEntity {
   @Column()
   url: string;
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: ContentsTypeEnum,
+  })
   contentsType: ContentsTypeEnum;
 
   @Column()
