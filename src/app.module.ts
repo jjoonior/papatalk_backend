@@ -36,10 +36,10 @@ import { SosModule } from './sos/sos.module';
     }),
     AuthModule,
     CommunityModule,
-    CommentModule,
+    SosModule,
     UtilsModule,
     UserModule,
-    SosModule,
+    CommentModule,
   ],
 })
 export class AppModule {}
