@@ -8,6 +8,7 @@ import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
 import { AuthModule } from '../auth/auth.module';
 import { CommentLikeEntity } from '../entity/commentLike.entity';
+import { SosEntity } from '../entity/sos.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CommentLikeEntity } from '../entity/commentLike.entity';
       CommentEntity,
       CategoryEntity,
       CommentLikeEntity,
+      SosEntity,
     ]),
     AuthModule,
   ],

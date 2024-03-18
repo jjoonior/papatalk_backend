@@ -31,9 +31,10 @@ import { ValidateUserGuard } from '../auth/guard/validateUser.guard';
 import { UpdateCommentReqDto } from './dto/updateCommentReq.dto';
 import { GetCommentListResDto } from './dto/getCommentListRes.dto';
 import { SortEnum } from '../entity/enum/sort.enum';
+import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 
-@Controller('/community/:communityId/comments')
-@ApiTags('Community Comment')
+@Controller('/:contentsType/:contentsId/comments')
+@ApiTags('Comment')
 @ApiInternalServerErrorResponse({
   schema: {
     example: {
@@ -48,12 +49,18 @@ export class CommentController {
   @Get()
   @UseGuards(ValidateUserGuard)
   @ApiOperation({
-    summary: '커뮤니티 댓글 목록 조회',
-    description: '커뮤니티 댓글 목록 조회',
+    summary: '게시글 댓글 목록 조회',
+    description: '게시글 댓글 목록 조회',
   })
   @ApiParam({
-    name: 'communityId',
-    description: '커뮤니티 게시글 id',
+    name: 'contentsType',
+    description: '게시글 종류',
+    example: ContentsTypeEnum.COMMUNITY,
+    enum: ContentsTypeEnum,
+  })
+  @ApiParam({
+    name: 'contentsId',
+    description: '게시글 id',
     example: 1,
     type: Number,
   })
@@ -83,7 +90,8 @@ export class CommentController {
     },
   })
   async getCommentList(
-    @Param('communityId') contentsId: number,
+    @Param('contentsType') contentsType: ContentsTypeEnum,
+    @Param('contentsId') contentsId: number,
     @Query('page') page = 1,
     @Query('sort') sort = SortEnum.CREATED_AT,
     @Query('take') take = 10,
@@ -93,6 +101,7 @@ export class CommentController {
       sort = SortEnum.CREATED_AT;
     }
     const [commentList, totalCount] = await this.commentService.getCommentList(
+      contentsType,
       contentsId,
       page,
       sort,
@@ -137,13 +146,19 @@ export class CommentController {
   @Post()
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: '커뮤니티 댓글 생성',
-    description: '커뮤니티 댓 생성',
+    summary: '댓글 생성',
+    description: '댓글 생성',
   })
   @ApiCreatedResponse()
   @ApiParam({
-    name: 'communityId',
-    description: '커뮤니티 게시글 id',
+    name: 'contentsType',
+    description: '게시글 종류',
+    example: ContentsTypeEnum.COMMUNITY,
+    enum: ContentsTypeEnum,
+  })
+  @ApiParam({
+    name: 'contentsId',
+    description: '게시글 id',
     example: 1,
     type: Number,
   })
@@ -158,29 +173,41 @@ export class CommentController {
     },
   })
   async createComment(
-    @Param('communityId') contentsId: number,
+    @Param('contentsType') contentsType: ContentsTypeEnum,
+    @Param('contentsId') contentsId: number,
     @Body() dto: CreateCommentReqDto,
     @Req() req,
   ) {
-    await this.commentService.createComment(contentsId, dto.content, req.user);
+    await this.commentService.createComment(
+      contentsType,
+      contentsId,
+      dto.content,
+      req.user,
+    );
   }
 
   @Put(':commentId')
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: '커뮤니티 댓글 수정',
-    description: '커뮤니티 댓글 수정',
+    summary: '댓글 수정',
+    description: '댓글 수정',
   })
   @ApiOkResponse()
   @ApiParam({
-    name: 'communityId',
-    description: '커뮤니티 게시글 id',
+    name: 'contentsType',
+    description: '게시글 종류',
+    example: ContentsTypeEnum.COMMUNITY,
+    enum: ContentsTypeEnum,
+  })
+  @ApiParam({
+    name: 'contentsId',
+    description: '게시글 id',
     example: 1,
     type: Number,
   })
   @ApiParam({
     name: 'commentId',
-    description: '커뮤니티 댓글 id',
+    description: '댓글 id',
     example: 1,
     type: Number,
   })
@@ -205,29 +232,41 @@ export class CommentController {
     },
   })
   async updateComment(
-    @Param('communityId') contentsId: number,
+    @Param('contentsType') contentsType: ContentsTypeEnum,
+    @Param('contentsId') contentsId: number,
     @Param('commentId') commentId: number,
     @Body() dto: UpdateCommentReqDto,
   ) {
-    await this.commentService.updateComment(contentsId, commentId, dto.content);
+    await this.commentService.updateComment(
+      contentsType,
+      contentsId,
+      commentId,
+      dto.content,
+    );
   }
 
   @Delete(':commentId')
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: '커뮤니티 댓글 삭제',
-    description: '커뮤니티 댓글 삭제',
+    summary: '댓글 삭제',
+    description: '댓글 삭제',
   })
   @ApiOkResponse()
   @ApiParam({
-    name: 'communityId',
-    description: '커뮤니티 게시글 id',
+    name: 'contentsType',
+    description: '게시글 종류',
+    example: ContentsTypeEnum.COMMUNITY,
+    enum: ContentsTypeEnum,
+  })
+  @ApiParam({
+    name: 'contentsId',
+    description: '게시글 id',
     example: 1,
     type: Number,
   })
   @ApiParam({
     name: 'commentId',
-    description: '커뮤니티 댓글 id',
+    description: '댓글 id',
     example: 1,
     type: Number,
   })
@@ -252,28 +291,39 @@ export class CommentController {
     },
   })
   async deleteComment(
-    @Param('communityId') contentsId: number,
+    @Param('contentsType') contentsType: ContentsTypeEnum,
+    @Param('contentsId') contentsId: number,
     @Param('commentId') commentId: number,
   ) {
-    await this.commentService.deleteComment(contentsId, commentId);
+    await this.commentService.deleteComment(
+      contentsType,
+      contentsId,
+      commentId,
+    );
     return;
   }
 
   @Post(':commentId/like')
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: '커뮤니티 댓글 추천 토글',
-    description: '커뮤니티 추천 토글',
+    summary: '댓글 추천 토글',
+    description: '댓글 추천 토글',
   })
   @ApiParam({
-    name: 'communityId',
-    description: '커뮤니티 게시글 id',
+    name: 'contentsType',
+    description: '게시글 종류',
+    example: ContentsTypeEnum.COMMUNITY,
+    enum: ContentsTypeEnum,
+  })
+  @ApiParam({
+    name: 'contentsId',
+    description: '게시글 id',
     example: 1,
     type: Number,
   })
   @ApiParam({
     name: 'commentId',
-    description: '커뮤니티 댓글 id',
+    description: '댓글 id',
     example: 1,
     type: Number,
   })
@@ -300,14 +350,14 @@ export class CommentController {
     },
   })
   async toggleCommentLike(
-    @Param('communityId') contentsId: number,
+    @Param('contentsType') contentsType: ContentsTypeEnum,
+    @Param('contentsId') contentsId: number,
     @Param('commentId') commentId: number,
     @Req() req,
     @Res() res,
   ) {
     const liked = await this.commentService.toggleCommentLike(
       req.user,
-      contentsId,
       commentId,
     );
 
