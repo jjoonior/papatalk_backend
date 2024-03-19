@@ -16,10 +16,12 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiConsumes,
+  ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserProfileReqDto } from './dto/updateUserProfileReq.dto';
@@ -28,6 +30,24 @@ import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
 @Controller('users/profile')
 @UseGuards(AuthGuard)
 @ApiTags('User - Profile')
+@ApiInternalServerErrorResponse({
+  schema: {
+    example: {
+      statusCode: 500,
+      message: 'Internal server error',
+    },
+  },
+})
+@ApiUnauthorizedResponse({
+  description: '토큰이 없거나 유효하지 않은 경우',
+  schema: {
+    example: {
+      message: '유효하지 않은 토큰입니다.',
+      error: 'Unauthorized',
+      statusCode: 401,
+    },
+  },
+})
 export class UserProfileController {
   constructor(private readonly userProfileService: UserProfileService) {}
 

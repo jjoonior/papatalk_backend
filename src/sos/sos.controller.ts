@@ -47,6 +47,14 @@ import { SosService } from './sos.service';
     },
   },
 })
+@ApiInternalServerErrorResponse({
+  schema: {
+    example: {
+      statusCode: 500,
+      message: 'Internal server error',
+    },
+  },
+})
 export class SosController {
   constructor(private readonly sosService: SosService) {}
 
