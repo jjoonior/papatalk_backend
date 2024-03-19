@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { ProfileImageEntity } from '../../entity/profileImage.entity';
 import { AwsS3Service } from '../../utils/awsS3.service';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserProfileService {
@@ -53,5 +54,16 @@ export class UserProfileService {
         await user.save();
       }
     }
+  }
+
+  async changePassword(user: UserEntity, originPassword, newPassword) {
+    const checkPassword = await bcrypt.compare(originPassword, user.password);
+    if (!checkPassword) {
+      throw new UnauthorizedException('비밀번호를 확인해 주세요.');
+    }
+
+    const salt = await bcrypt.genSalt();
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
   }
 }

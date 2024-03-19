@@ -26,6 +26,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserProfileReqDto } from './dto/updateUserProfileReq.dto';
 import { GetUserProfileResDto } from './dto/getUserProfileRes.dto';
+import { ChangePasswordReqDto } from './dto/changePasswordReq.dto';
 
 @Controller('users/profile')
 @UseGuards(AuthGuard)
@@ -150,6 +151,30 @@ export class UserProfileController {
       req.user,
       profileImage,
       dto.nickname,
+    );
+  }
+
+  @Put('change-password')
+  @ApiOperation({
+    summary: '비밀번호 변경',
+    description: '비밀번호 변경',
+  })
+  @ApiOkResponse()
+  @ApiBadRequestResponse({
+    description: '입력값이 유효하지 않을 경우',
+    schema: {
+      example: {
+        message: '비밀번호를 확인해 주세요.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
+  async changePassword(@Body() dto: ChangePasswordReqDto, @Req() req) {
+    await this.userProfileService.changePassword(
+      req.user,
+      dto.originPassword,
+      dto.newPassword,
     );
   }
 }
