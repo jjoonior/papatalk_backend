@@ -1,6 +1,11 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/guard/auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserActivityService } from './userActivity.service';
 import { GetUserActivityListResDto } from './dto/getUserActivityListRes.dto';
 
@@ -11,6 +16,25 @@ export class UserActivityController {
   constructor(private readonly userActivityService: UserActivityService) {}
 
   @Get('contents')
+  @ApiOperation({
+    summary: '유저가 작성한 게시글 목록 조회',
+    description: '유저가 작성한 게시글 목록 조회',
+  })
+  @ApiQuery({
+    name: 'contentsType',
+    description: 'community / sos ',
+    example: 'all / community / sos',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '페이지',
+    example: 1,
+    required: false,
+    type: Number,
+  })
+  @ApiOkResponse({ type: GetUserActivityListResDto })
   async getContentsList(
     @Query('contentsType') contentsType = 'all',
     @Query('page') page = 1,
@@ -38,6 +62,25 @@ export class UserActivityController {
   }
 
   @Get('comments')
+  @ApiOperation({
+    summary: '유저가 작성한 댓글의 게시글 목록 조회',
+    description: '유저가 작성한 댓글의 게시글 목록 조회',
+  })
+  @ApiQuery({
+    name: 'contentsType',
+    description: 'community / sos ',
+    example: 'all / community / sos',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '페이지',
+    example: 1,
+    required: false,
+    type: Number,
+  })
+  @ApiOkResponse({ type: GetUserActivityListResDto })
   async getCommentList(
     @Query('contentsType') contentsType = 'all',
     @Query('page') page = 1,
