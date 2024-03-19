@@ -17,12 +17,12 @@ export class TokenResDto {
   })
   refreshToken: string;
 
-  @ApiProperty({
-    description: '유저 id',
-    type: Number,
-    example: '아무개',
-  })
-  userId: number;
+  // @ApiProperty({
+  //   description: '유저 id',
+  //   type: Number,
+  //   example: 123,
+  // })
+  // userId: number;
 
   @ApiProperty({
     description: '닉네임',

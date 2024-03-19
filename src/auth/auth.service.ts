@@ -67,7 +67,7 @@ export class AuthService {
     return {
       accessToken: token.accessToken,
       refreshToken: token.refreshToken,
-      userId: newUser.id,
+      // userId: newUser.id,
       nickname: newUser.nickname,
       profileImage: newUser.nickname,
     };
@@ -91,7 +91,7 @@ export class AuthService {
     return {
       accessToken: token.accessToken,
       refreshToken: token.refreshToken,
-      userId: user.id,
+      // userId: user.id,
       nickname: user.nickname,
       profileImage: user.profileImage?.url || user.nickname,
     };
@@ -186,7 +186,7 @@ export class AuthService {
     return {
       accessToken: token.accessToken,
       refreshToken: token.refreshToken,
-      userId: user.id,
+      // userId: user.id,
       nickname: user.nickname,
       profileImage: user.profileImage?.url || user.nickname,
     };
