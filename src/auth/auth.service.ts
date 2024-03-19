@@ -13,11 +13,6 @@ import * as bcrypt from 'bcrypt';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
-const cookieOptions = {
-  httpOnly: true,
-  // secure: true,
-};
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -126,9 +121,6 @@ export class AuthService {
       },
     );
 
-    res.cookie('accessToken', accessToken, cookieOptions);
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-
     await this.storeToken(user.id, refreshToken);
 
     return { accessToken, refreshToken };
@@ -168,8 +160,10 @@ export class AuthService {
   }
 
   async reissueToken(req, res) {
-    const refreshToken = req.cookies['refreshToken'];
-    if (!refreshToken) {
+    const [type, accessToken, refreshToken] =
+      req.headers.authorization?.split(' ') ?? [];
+
+    if (type != 'Bearer' || !refreshToken) {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
 

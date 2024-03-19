@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { UserEntity } from '../../entity/user.entity';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -14,7 +15,7 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
-    const accessToken = req.cookies['accessToken'];
+    const accessToken = this.extractTokenFromHeader(req);
     if (!accessToken) {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
@@ -28,5 +29,11 @@ export class AuthGuard implements CanActivate {
     req.user = user;
 
     return true;
+  }
+
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, accessToken, refreshToken] =
+      request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? accessToken.split(',')[0] : undefined;
   }
 }
