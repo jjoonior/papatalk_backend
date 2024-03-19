@@ -38,7 +38,7 @@ import { SortEnum } from '../entity/enum/sort.enum';
 import { SosService } from './sos.service';
 
 @Controller('sos')
-@ApiTags('SOS')
+@ApiTags('Contents - SOS')
 @ApiInternalServerErrorResponse({
   schema: {
     example: {

@@ -15,6 +15,9 @@ import { BabyController } from './baby/baby.controller';
 import { BabyService } from './baby/baby.service';
 import { BabyEntity } from '../entity/baby.entity';
 import { GrowthRecordEntity } from '../entity/growthRecord.entity';
+import { SosEntity } from '../entity/sos.entity';
+import { UserActivityController } from './activity/userActivity.controller';
+import { UserActivityService } from './activity/userActivity.service';
 
 @Module({
   imports: [
@@ -28,11 +31,12 @@ import { GrowthRecordEntity } from '../entity/growthRecord.entity';
       ContentsImageEntity,
       BabyEntity,
       GrowthRecordEntity,
+      SosEntity,
     ]),
     AuthModule,
     UtilsModule,
   ],
-  controllers: [UserProfileController, BabyController],
-  providers: [UserProfileService, BabyService],
+  controllers: [UserProfileController, UserActivityController, BabyController],
+  providers: [UserProfileService, UserActivityService, BabyService],
 })
 export class UserModule {}
