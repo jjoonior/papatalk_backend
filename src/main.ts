@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
@@ -9,8 +8,6 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
-
-  app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('papatalk')
