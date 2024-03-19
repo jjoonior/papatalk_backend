@@ -10,10 +10,12 @@ import {
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import {
   ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { BabyService } from './baby.service';
 import { GetBabyInfoResDto } from './dto/getBabyInfoRes.dto';
@@ -23,6 +25,24 @@ import { SaveGrowthRecordReqDto } from './dto/saveGrowthRecordReq.dto';
 @Controller('users/baby')
 @UseGuards(AuthGuard)
 @ApiTags('User - Baby')
+@ApiInternalServerErrorResponse({
+  schema: {
+    example: {
+      statusCode: 500,
+      message: 'Internal server error',
+    },
+  },
+})
+@ApiUnauthorizedResponse({
+  description: '토큰이 없거나 유효하지 않은 경우',
+  schema: {
+    example: {
+      message: '유효하지 않은 토큰입니다.',
+      error: 'Unauthorized',
+      statusCode: 401,
+    },
+  },
+})
 export class BabyController {
   constructor(private readonly babyService: BabyService) {}
 

@@ -1,10 +1,12 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import {
+  ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserActivityService } from './userActivity.service';
 import { GetUserActivityListResDto } from './dto/getUserActivityListRes.dto';
@@ -12,6 +14,24 @@ import { GetUserActivityListResDto } from './dto/getUserActivityListRes.dto';
 @Controller('users/activity')
 @UseGuards(AuthGuard)
 @ApiTags('User - Activity')
+@ApiInternalServerErrorResponse({
+  schema: {
+    example: {
+      statusCode: 500,
+      message: 'Internal server error',
+    },
+  },
+})
+@ApiUnauthorizedResponse({
+  description: '토큰이 없거나 유효하지 않은 경우',
+  schema: {
+    example: {
+      message: '유효하지 않은 토큰입니다.',
+      error: 'Unauthorized',
+      statusCode: 401,
+    },
+  },
+})
 export class UserActivityController {
   constructor(private readonly userActivityService: UserActivityService) {}
 
