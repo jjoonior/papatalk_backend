@@ -51,6 +51,21 @@ import { SortEnum } from '../entity/enum/sort.enum';
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
+  @Get('category')
+  @ApiOperation({
+    summary: '커뮤니티 카테고리 목록 조회',
+    description: '커뮤니티 카테고리 목록 조회',
+  })
+  @ApiOkResponse({
+    schema: {
+      example: ['자유게시판', '육아'],
+    },
+  })
+  async getCategoryList() {
+    const categoryList = await this.communityService.getCategoryList();
+    return categoryList.map((category) => category.category);
+  }
+
   @Get()
   @ApiOperation({
     summary: '커뮤니티 게시글 목록 조회',
@@ -193,11 +208,13 @@ export class CommunityController {
   }
 
   @Put(':id')
+  @UseInterceptors(FilesInterceptor('images'))
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: '커뮤니티 게시글 수정',
     description: '커뮤니티 게시글 수정',
   })
+  @ApiConsumes('multipart/form-data')
   @ApiOkResponse()
   @ApiParam({
     name: 'id',
@@ -236,13 +253,17 @@ export class CommunityController {
   })
   async updateCommunity(
     @Param('id') id: number,
+    @UploadedFiles() images,
     @Body() dto: UpdateCommunityReqDto,
     @Req() req,
     // @Res({ passthrough: true }) res,
   ) {
+    dto.uploadedImages = JSON.parse(dto.uploadedImages ?? '[]');
+
     const community = await this.communityService.getCommunity(id);
     await this.communityService.isAuthor(req.user, community);
     await this.communityService.updateCommunity(community, dto);
+    await this.communityService.saveCommunityImages(community, images);
 
     // return res.status(302).redirect(`${community.id}`);
   }

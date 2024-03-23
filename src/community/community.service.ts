@@ -35,6 +35,10 @@ export class CommunityService {
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
+  async getCategoryList() {
+    return await this.categoryRepository.find();
+  }
+
   async getCommunityList(
     page: number,
     sort: SortEnum,
@@ -200,6 +204,16 @@ export class CommunityService {
     community.title = dto.title;
     community.content = dto.content;
     community.category = categoryEntity;
+
+    const uploadedImages = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+    const deletedImages = uploadedImages.filter(
+      (image) => !dto.uploadedImages.includes(image.url),
+    );
+
+    await this.contentsImageRepository.remove(deletedImages);
 
     await community.save();
   }
