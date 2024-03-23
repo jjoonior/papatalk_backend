@@ -51,6 +51,21 @@ import { SortEnum } from '../entity/enum/sort.enum';
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
+  @Get('category')
+  @ApiOperation({
+    summary: '커뮤니티 카테고리 목록 조회',
+    description: '커뮤니티 카테고리 목록 조회',
+  })
+  @ApiOkResponse({
+    schema: {
+      example: ['자유게시판', '육아'],
+    },
+  })
+  async getCategoryList() {
+    const categoryList = await this.communityService.getCategoryList();
+    return categoryList.map((category) => category.category);
+  }
+
   @Get()
   @ApiOperation({
     summary: '커뮤니티 게시글 목록 조회',

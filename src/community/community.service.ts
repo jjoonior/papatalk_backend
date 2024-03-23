@@ -35,6 +35,10 @@ export class CommunityService {
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
+  async getCategoryList() {
+    return await this.categoryRepository.find();
+  }
+
   async getCommunityList(
     page: number,
     sort: SortEnum,
