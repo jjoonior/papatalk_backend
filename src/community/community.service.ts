@@ -201,6 +201,16 @@ export class CommunityService {
     community.content = dto.content;
     community.category = categoryEntity;
 
+    const uploadedImages = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: community.id,
+    });
+    const deletedImages = uploadedImages.filter(
+      (image) => !dto.uploadedImages.includes(image.url),
+    );
+
+    await this.contentsImageRepository.remove(deletedImages);
+
     await community.save();
   }
 
