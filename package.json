@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.10.3",
     "@nestjs/cache-manager": "^2.2.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.0",
@@ -34,8 +35,10 @@
     "cache-manager": "^5.4.0",
     "cache-manager-ioredis": "^2.1.0",
     "cookie-parser": "^1.4.6",
+    "handlebars": "^4.7.8",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.9.2",
+    "nodemailer": "^6.9.13",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20"
