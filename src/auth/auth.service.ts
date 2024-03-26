@@ -19,7 +19,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userEntityRepository: Repository<UserEntity>,
     private readonly jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private cacheManager,
   ) {}
 
   async duplicationCheckEmail(email: string) {
@@ -129,12 +129,9 @@ export class AuthService {
   async storeToken(id: string, refreshToken: string) {
     const token = { refreshToken };
     const key = `token:${id}`;
-    await this.cacheManager.set(
-      key,
-      token,
-      // ttl 옵션 적용이 안됨 -> cacheModule.register 시 ttl 설정
-      // Number(process.env.JWT_REFRESH_EXPIRE),
-    );
+    await this.cacheManager.set(key, token, {
+      ttl: Number(process.env.JWT_REFRESH_EXPIRE),
+    });
   }
 
   async getToken(id: string) {

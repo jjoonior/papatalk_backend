@@ -33,7 +33,6 @@ import { EmailModule } from './email/email.module';
       store: redisStore,
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
-      ttl: Number(process.env.JWT_REFRESH_EXPIRE),
     }),
     EmailModule,
     AuthModule,
