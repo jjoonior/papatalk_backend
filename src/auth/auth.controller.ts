@@ -23,6 +23,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { TokenResDto } from './dto/tokenRes.dto';
+import { EmailService } from '../email/email.service';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -35,7 +36,10 @@ import { TokenResDto } from './dto/tokenRes.dto';
   },
 })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly emailService: EmailService,
+  ) {}
 
   @Get('duplication-check')
   @ApiOperation({
@@ -171,5 +175,19 @@ export class AuthController {
     @Res({ passthrough: true }) res,
   ): Promise<TokenResDto> {
     return await this.authService.reissueToken(req, res);
+  }
+
+  @Post('reset-password')
+  async sendEmailResetPasswordLink(@Body() dto: { email: string }) {
+    const resetLink = await this.authService.createResetPasswordLink(dto.email);
+    await this.emailService.sendEmailResetPasswordLink(dto.email, resetLink);
+  }
+
+  @Get('reset-password')
+  async getResetPassword(
+    @Query('email') email: string,
+    @Query('token') token: string,
+  ) {
+    return await this.authService.getResetPassword(email, token);
   }
 }

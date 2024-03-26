@@ -40,9 +40,9 @@ export class AwsS3Service {
 
     try {
       await this.s3.deleteObject(deleteParams).promise();
-    } catch (error) {
-      console.error(error);
-      throw error;
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
   }
 }
