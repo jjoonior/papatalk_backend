@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   HttpStatus,
   Post,
   Query,
@@ -19,6 +18,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -127,12 +127,17 @@ export class AuthController {
   }
 
   @Post('login')
-  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '로그인',
     description: '로그인',
   })
   @ApiOkResponse({
+    description: '등록된 아기 정보가 있는 경우',
+    type: TokenResDto,
+  })
+  @ApiResponse({
+    status: 209,
+    description: '등록된 아기 정보가 없을 경우',
     type: TokenResDto,
   })
   @ApiUnauthorizedResponse({
@@ -145,11 +150,13 @@ export class AuthController {
       },
     },
   })
-  async login(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res,
-  ): Promise<TokenResDto> {
-    return await this.authService.login(res, dto.email, dto.password);
+  async login(@Body() dto: LoginDto, @Res() res): Promise<TokenResDto> {
+    const [result, baby] = await this.authService.login(
+      res,
+      dto.email,
+      dto.password,
+    );
+    return res.status(baby ? HttpStatus.OK : 209).json(result);
   }
 
   @Get('refresh')

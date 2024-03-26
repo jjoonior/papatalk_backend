@@ -77,7 +77,7 @@ export class AuthService {
   async login(res, email: string, password: string) {
     const user = await this.userEntityRepository.findOne({
       where: { email },
-      relations: { profileImage: true },
+      relations: { profileImage: true, babies: true },
     });
     if (!user) {
       throw new UnauthorizedException('로그인에 실패했습니다.');
@@ -89,13 +89,16 @@ export class AuthService {
     }
 
     const token = await this.signToken(res, user);
-    return {
-      accessToken: token.accessToken,
-      refreshToken: token.refreshToken,
-      // userId: user.id,
-      nickname: user.nickname,
-      profileImage: user.profileImage?.url || user.nickname,
-    };
+    return [
+      {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        // userId: user.id,
+        nickname: user.nickname,
+        profileImage: user.profileImage?.url || user.nickname,
+      },
+      !!user.babies[0],
+    ];
   }
 
   async signToken(res, user) {
