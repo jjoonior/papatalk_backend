@@ -5,9 +5,10 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class EmailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendEmail(email: string): Promise<void> {
-    const resetLink = '';
-
+  async sendEmailResetPasswordLink(
+    email: string,
+    resetLink: string,
+  ): Promise<void> {
     // todo 에러 한번 터지면 서버 터짐 - 에러처리해도 발생
     /**
      * 탬플릿 파일은 빌드 과정에서 제외되므로 nest-cli.json 에 코드 추가해줘야함

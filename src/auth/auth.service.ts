@@ -12,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -194,5 +195,61 @@ export class AuthService {
       where: { id: payload.id },
       relations: { profileImage: true },
     });
+  }
+
+  async createResetPasswordLink(email) {
+    const user = await this.userEntityRepository.findOneBy({ email });
+    if (!user) {
+      throw new BadRequestException('메일 주소를 다시 확인해주세요.');
+    }
+
+    const token = crypto.randomUUID();
+    const key = `resetPasswordLink:email:${email}:token:${token}`;
+    await this.cacheManager.set(key, 'NOT_RESET', {
+      ttl: Number(process.env.RESET_PASSWORD_LINK_TTL),
+    });
+
+    return `${process.env.APP_DOMAIN}/auth/reset-password?email=${email}&token=${token}`;
+  }
+
+  async getResetPassword(email, token) {
+    const user = await this.userEntityRepository.findOneBy({ email });
+    if (!user) {
+      throw new BadRequestException('메일 주소를 다시 확인해주세요.');
+    }
+
+    const key = `resetPasswordLink:email:${email}:token:${token}`;
+    let resetPassword = await this.cacheManager.get(key);
+    const ttl = await this.cacheManager.store.ttl(key);
+
+    if (resetPassword) {
+      if (resetPassword === 'NOT_RESET') {
+        // 임시 비밀번호 생성
+        resetPassword = await this.generateRandomPassword(10);
+
+        // 유저 비밀번호 저장
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(resetPassword, salt);
+        user.password = hashedPassword;
+        await user.save();
+
+        // 임시 비밀번호 메모리에 저장 (남은 TTL 적용)
+        await this.cacheManager.set(key, resetPassword, { ttl });
+      }
+      return resetPassword;
+    } else {
+      throw new BadRequestException('잘못된 접근입니다.');
+    }
+  }
+
+  async generateRandomPassword(length) {
+    const charset =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|:;<>?';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    return password;
   }
 }
