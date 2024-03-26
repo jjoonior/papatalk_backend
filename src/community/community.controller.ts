@@ -37,6 +37,7 @@ import {
 import { UpdateCommunityReqDto } from './dto/updateCommunityReq.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SortEnum } from '../entity/enum/sort.enum';
+import { GetPopularCommunityListResDto } from './dto/getPopularCommunityListRes.dto';
 
 @Controller('community')
 @ApiTags('Contents - Community')
@@ -50,6 +51,27 @@ import { SortEnum } from '../entity/enum/sort.enum';
 })
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
+
+  @Get('populars')
+  @ApiOperation({
+    summary: '커뮤니티 인기글 목록 조회',
+    description: '커뮤니티 인기글 목록 조회',
+  })
+  @ApiQuery({
+    name: 'category',
+    description: '카테고리',
+    example: '자유게시판',
+    required: false,
+    type: String,
+  })
+  @ApiOkResponse({ type: GetPopularCommunityListResDto })
+  async getPopularCommunityList(@Query('category') category) {
+    const communityList = await this.communityService.getPopularCommunityList(
+      category,
+    );
+
+    return { communityList };
+  }
 
   @Get('category')
   @ApiOperation({

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entity/user.entity';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import { CommunityEntity } from '../entity/community.entity';
 import { CommentEntity } from '../entity/comment.entity';
 import { CategoryEntity } from '../entity/category.entity';
@@ -16,6 +16,7 @@ import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
 import { SortEnum } from '../entity/enum/sort.enum';
 import crypto from 'crypto';
+import { CategoryEnum } from '../entity/enum/category.enum';
 
 @Injectable()
 export class CommunityService {
@@ -34,6 +35,53 @@ export class CommunityService {
     private readonly contentsImageRepository: Repository<ContentsImageEntity>,
     private readonly awsS3Service: AwsS3Service,
   ) {}
+
+  async getPopularCommunityList(category: CategoryEnum) {
+    const categoryOption = Object.values(CategoryEnum).includes(category)
+      ? `where ctg.category = '${category}'`
+      : '';
+
+    const popularCommunityList = await this.communityRepository.query(`
+        select 
+            c.id, 
+            c.title, 
+            c.views, 
+            c.likes, 
+            c.created_at as createdAt, 
+            u.nickname as authorNickname, 
+            ctg.category,
+            null as thumbnail
+        from community c
+                 left join user u on u.id = c.userId
+                 left join category ctg on ctg.id = c.categoryId
+            ${categoryOption}
+        order by c.views desc 
+        limit 4
+    `);
+
+    const idList = popularCommunityList.map((c) => c.id);
+    const images = await ContentsImageEntity.find({
+      where: {
+        contentsType: ContentsTypeEnum.COMMUNITY,
+        contentsId: In(idList),
+      },
+      order: { id: 'asc' },
+    });
+
+    for (const image of images) {
+      for (const c of popularCommunityList) {
+        if (c.id == image.contentsId) {
+          if (c.thumbnail) {
+            break;
+          } else {
+            c.thumbnail = image.url;
+          }
+        }
+      }
+    }
+
+    return popularCommunityList;
+  }
 
   async getCategoryList() {
     return await this.categoryRepository.find();
