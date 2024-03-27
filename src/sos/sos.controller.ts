@@ -34,7 +34,7 @@ import {
 } from '@nestjs/swagger';
 import { UpdateSosReqDto } from './dto/updateSosReq.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { SortEnum } from '../entity/enum/sort.enum';
+import { SosSortEnum } from '../entity/enum/sort.enum';
 import { SosService } from './sos.service';
 
 @Controller('sos')
@@ -87,27 +87,21 @@ export class SosController {
   @ApiOkResponse({ type: GetSosListResDto })
   async getSosList(
     @Query('page') page = 1,
-    @Query('sort') sort = SortEnum.CREATED_AT,
+    @Query('sort') sort = SosSortEnum.CREATED_AT,
     @Query('search') search = '',
     @Query('take') take = 10,
   ): Promise<GetSosListResDto> {
-    if (!Object.values(SortEnum).includes(sort)) {
-      sort = SortEnum.CREATED_AT;
+    if (!Object.values(SosSortEnum).includes(sort)) {
+      sort = SosSortEnum.CREATED_AT;
     }
-    const [sosList, totalCount] = await this.sosService.getSosList(
-      page,
-      sort,
-      search,
-      take,
-    );
+    const sosList = await this.sosService.getSosList(page, sort, search, take);
+    const totalCount = sosList[0]?.totalCount || 0;
     const totalPage = Math.ceil(totalCount / take);
 
     return {
-      sosList: sosList.map((c: any) => {
-        c.authorNickname = c.user.nickname;
-        delete c.user;
-
-        return c;
+      sosList: sosList.map((s: any) => {
+        delete s.totalCount;
+        return s;
       }),
       totalCount,
       totalPage,
