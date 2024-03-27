@@ -11,7 +11,7 @@ import { LikeEntity } from '../entity/like.entity';
 import { ContentsTypeEnum } from '../entity/enum/contentsType.enum';
 import { ContentsImageEntity } from '../entity/contentsImage.entity';
 import { AwsS3Service } from '../utils/awsS3.service';
-import { SortEnum } from '../entity/enum/sort.enum';
+import { SosSortEnum } from '../entity/enum/sort.enum';
 import crypto from 'crypto';
 import { SosEntity } from '../entity/sos.entity';
 
@@ -31,46 +31,35 @@ export class SosService {
     private readonly awsS3Service: AwsS3Service,
   ) {}
 
-  async getSosList(page: number, sort: SortEnum, search: string, take: number) {
+  async getSosList(
+    page: number,
+    sort: SosSortEnum,
+    search: string,
+    take: number,
+  ) {
     const skip = (page - 1) * take;
-    switch (sort) {
-      case SortEnum.CREATED_AT:
-        return await this.sosRepository.findAndCount({
-          select: {
-            id: true,
-            title: true,
-            views: true,
-            likes: true,
-            createdAt: true,
-            user: {
-              nickname: true,
-            },
-          },
-          skip,
-          take,
-          where: { title: Like(`%${search}%`) },
-          order: { createdAt: 'desc' },
-          relations: { user: true },
-        });
-      case SortEnum.LIKES:
-        return await this.sosRepository.findAndCount({
-          select: {
-            id: true,
-            title: true,
-            views: true,
-            likes: true,
-            createdAt: true,
-            user: {
-              nickname: true,
-            },
-          },
-          skip,
-          take,
-          where: { title: Like(`%${search}%`) },
-          order: { likes: 'desc' },
-          relations: { user: true },
-        });
-    }
+
+    return await this.sosRepository.query(`
+        select s.id,
+               s.title,
+               s.content,
+               s.views,
+               s.likes,
+               s.created_at                              as createdAt,
+--                u.nickname                                as authorNickname,
+               case when cnt is null then 0 else cnt end as commentsCount,
+               count(*)                                     over() as totalCount
+        from sos s
+--                  left join user u on u.id = s.userId
+                 left join (select contentsType, contentsId, count(*) as cnt
+                            from comment
+                            where contentsType = '${ContentsTypeEnum.SOS}'
+                            group by contentsType, contentsId) cmt on cmt.contentsId = s.id
+        where s.title like '%${search}%'
+        order by ${sort} desc
+            limit ${take}
+        offset ${skip}
+    `);
   }
 
   async getSosDetail(id: number) {
@@ -164,6 +153,16 @@ export class SosService {
   async updateSos(sos: SosEntity, dto) {
     sos.title = dto.title;
     sos.content = dto.content;
+
+    const uploadedImages = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: sos.id,
+    });
+    const deletedImages = uploadedImages.filter(
+      (image) => !dto.uploadedImages.includes(image.url),
+    );
+
+    await this.contentsImageRepository.remove(deletedImages);
 
     await sos.save();
   }
