@@ -190,11 +190,13 @@ export class SosController {
   }
 
   @Put(':id')
+  @UseInterceptors(FilesInterceptor('images'))
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'sos 게시글 수정',
     description: 'sos 게시글 수정',
   })
+  @ApiConsumes('multipart/form-data')
   @ApiOkResponse()
   @ApiParam({
     name: 'id',
@@ -223,13 +225,17 @@ export class SosController {
   })
   async updateSos(
     @Param('id') id: number,
+    @UploadedFiles() images,
     @Body() dto: UpdateSosReqDto,
     @Req() req,
     // @Res({ passthrough: true }) res,
   ) {
+    dto.uploadedImages = JSON.parse(dto.uploadedImages ?? '[]');
+
     const sos = await this.sosService.getSos(id);
     await this.sosService.isAuthor(req.user, sos);
     await this.sosService.updateSos(sos, dto);
+    await this.sosService.saveSosImages(sos, images);
 
     // return res.status(302).redirect(`${sos.id}`);
   }

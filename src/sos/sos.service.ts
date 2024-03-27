@@ -165,6 +165,16 @@ export class SosService {
     sos.title = dto.title;
     sos.content = dto.content;
 
+    const uploadedImages = await this.contentsImageRepository.findBy({
+      contentsType: ContentsTypeEnum.COMMUNITY,
+      contentsId: sos.id,
+    });
+    const deletedImages = uploadedImages.filter(
+      (image) => !dto.uploadedImages.includes(image.url),
+    );
+
+    await this.contentsImageRepository.remove(deletedImages);
+
     await sos.save();
   }
 
