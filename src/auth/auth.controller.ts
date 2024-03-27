@@ -13,7 +13,9 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -49,7 +51,7 @@ export class AuthController {
   @ApiOkResponse()
   @ApiQuery({
     name: 'email',
-    description: '페이지',
+    description: '이메일',
     example: 'example@example.com',
     required: false,
     type: String,
@@ -88,7 +90,7 @@ export class AuthController {
     summary: '회원가입',
     description: '회원가입',
   })
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     type: TokenResDto,
   })
   @ApiBadRequestResponse({
@@ -185,16 +187,85 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @ApiOperation({
+    summary: '임시 비밀번호 발급 이메일 요청',
+    description: '임시 비밀번호 발급 이메일 요청',
+  })
+  @ApiBody({
+    required: true,
+    schema: {
+      example: {
+        email: 'example@example.com',
+      },
+    },
+  })
+  @ApiCreatedResponse()
+  @ApiBadRequestResponse({
+    description: '존재하지 않는 이메일(유저)',
+    schema: {
+      example: {
+        message: '메일 주소를 다시 확인해주세요.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
   async sendEmailResetPasswordLink(@Body() dto: { email: string }) {
     const resetLink = await this.authService.createResetPasswordLink(dto.email);
     await this.emailService.sendEmailResetPasswordLink(dto.email, resetLink);
   }
 
   @Get('reset-password')
+  @ApiOperation({
+    summary: '임시 비밀번호 발급 및 확인 링크',
+    description: '임시 비밀번호 발급 및 확인 링크',
+  })
+  @ApiQuery({
+    name: 'email',
+    description: '이메일',
+    example: 'example@example.com',
+    required: true,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'token',
+    description: '검증 토큰',
+    example: 'aaaaa-12111-aaaa',
+    required: true,
+    type: String,
+  })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        password: 'qwer1234',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: '존재하지 않는 이메일(유저)',
+    schema: {
+      example: {
+        message: '메일 주소를 다시 확인해주세요.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: '링크 유효시간(30분) 이후에 요청 시',
+    schema: {
+      example: {
+        message: '잘못된 접근입니다.',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    },
+  })
   async getResetPassword(
     @Query('email') email: string,
     @Query('token') token: string,
   ) {
-    return await this.authService.getResetPassword(email, token);
+    const password = await this.authService.getResetPassword(email, token);
+    return { password };
   }
 }
