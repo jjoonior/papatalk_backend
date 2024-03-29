@@ -19,13 +19,18 @@ export class GrowthStatisticsEntity extends BaseEntity {
   @Column()
   month: number;
 
+  @Column()
+  percentile: number;
+
   @Column({ type: 'decimal', precision: 4, scale: 1 })
   height: number;
 
   @Column({ type: 'decimal', precision: 4, scale: 1 })
   weight: number;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   source: string;
 
   @CreateDateColumn({ name: 'created_at' })
