@@ -16,7 +16,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         },
       },
       defaults: {
-        from: `${process.env.APP_NAME}" <no-reply@localhost>`,
+        from: `${process.env.APP_NAME}" <${process.env.MAIL_USER}>`,
       },
       template: {
         dir: __dirname + '/templates',
