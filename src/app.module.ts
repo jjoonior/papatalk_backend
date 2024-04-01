@@ -25,8 +25,7 @@ import { EmailModule } from './email/email.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity.{js,ts}'],
-      // 개발환경은 true
-      synchronize: true,
+      synchronize: process.env.NODE_ENV === 'dev',
     }),
     CacheModule.register({
       isGlobal: true,
