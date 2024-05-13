@@ -30,7 +30,7 @@ export class UserActivityService {
                c.id                            as contentsId,
                title,
                u.nickname                      as authorNickname,
-               c.created_at,
+               c.created_at                    as createdAt,
                views,
                likes
         from community c
@@ -42,7 +42,7 @@ export class UserActivityService {
                s.id                      as contentsId,
                title,
                u.nickname                as authorNickname,
-               s.created_at,
+               s.created_at              as createdAt,
                views,
                likes
         from sos s
@@ -64,7 +64,7 @@ export class UserActivityService {
     return await this.commentRepository.query(`
         select *, count(*) over() as totalCount
         from (${q}) a
-        order by a.created_at
+        order by a.createdAt
             limit ${take}
         offset ${skip}
     `);
@@ -83,7 +83,7 @@ export class UserActivityService {
                c.id                            as contentsId,
                title,
                u.nickname                      as authorNickname,
-               c.created_at,
+               c.created_at                    as createdAt,
                views,
                likes
         from community c
@@ -98,7 +98,7 @@ export class UserActivityService {
                s.id                      as contentsId,
                title,
                u.nickname                as authorNickname,
-               s.created_at,
+               s.created_at              as createdAt,
                views,
                likes
         from sos s
@@ -123,7 +123,7 @@ export class UserActivityService {
     return await this.commentRepository.query(`
         select *, count(*) over() as totalCount
         from (${q}) a
-        order by a.created_at
+        order by a.createdAt
             limit ${take}
         offset ${skip}
     `);
